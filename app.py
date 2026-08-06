@@ -6,6 +6,7 @@ from flask import Flask, render_template, request, jsonify, send_from_directory
 from utils.image_processor import decode_base64_image, process_image
 from utils.model_handler import get_model_handler
 from utils.pdf_generator import generate_pdf_report
+from utils.llm_handler import get_llm_handler
 
 # Initialize Flask application
 app = Flask(__name__, static_folder="static", template_folder="templates")
@@ -22,8 +23,9 @@ app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 app.config["REPORT_FOLDER"] = REPORT_FOLDER
 app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024  # 16 MB max upload limit
 
-# Pre-load PyTorch Model Handler Singleton
+# Pre-load PyTorch Model Handler & LLM Handler Singletons
 model_handler = get_model_handler()
+llm_handler = get_llm_handler()
 
 @app.route("/")
 def index():
@@ -34,7 +36,6 @@ def index():
 def predict():
     """
     API Endpoint for Vehicle Damage Classification.
-    Accepts JSON with base64 image data or multipart file upload.
     Executes PyTorch model inference in evaluation mode with torch.no_grad().
     """
     try:
@@ -86,6 +87,36 @@ def predict():
             "message": f"Inference processing failed: {str(e)}"
         }), 500
 
+@app.route("/api/chat", methods=["POST"])
+def chat():
+    """
+    API Endpoint for AI Claims Assistant LLM Chatbot.
+    Accepts user question, language (en/kn), and vehicle inspection context.
+    """
+    try:
+        data = request.get_json()
+        if not data or "message" not in data:
+            return jsonify({"status": "error", "message": "No prompt message provided."}), 400
+
+        user_message = data.get("message", "").strip()
+        language = data.get("language", "en")
+        vehicle_context = data.get("vehicle_context", "")
+
+        reply = llm_handler.chat_response(user_message, language=language, vehicle_context=vehicle_context)
+
+        return jsonify({
+            "status": "success",
+            "reply": reply,
+            "language": language
+        }), 200
+
+    except Exception as e:
+        print(f"[ERROR] LLM Chat Exception: {e}")
+        return jsonify({
+            "status": "error",
+            "message": f"LLM assistant failed to process request: {str(e)}"
+        }), 500
+
 @app.route("/api/generate_report", methods=["POST"])
 def generate_report():
     """
@@ -109,12 +140,9 @@ def generate_report():
             "policy_no": data.get("policy_no", "N/A"),
             "inspection_id": inspection_id,
             "date_time": date_time_str,
-            "notes": data.get("notes", "No clinical remarks entered."),
+            "notes": data.get("notes", "No remarks entered."),
             "prediction": data.get("prediction", "Unknown"),
-            "confidence": data.get("confidence", 0),
-            "severity_score": data.get("severity_score", 0),
-            "repair_estimate": data.get("repair_estimate", "N/A"),
-            "recommendation": data.get("recommendation", "N/A"),
+            "summary": data.get("summary", ""),
             "framework": data.get("framework", "PyTorch 2.13.0"),
             "inference_time_ms": data.get("inference_time_ms", 0),
             "image_path": image_path
@@ -153,5 +181,3 @@ if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     print(f"[SERVER START] Starting AI Vehicle Damage Assessment System on http://0.0.0.0:{port}")
     app.run(host="0.0.0.0", port=port, debug=False)
-
-

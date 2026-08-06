@@ -1,12 +1,13 @@
 /**
  * AI Vehicle Damage Detection
- * Frontend Controller (Strict Binary Classification Mode)
+ * Frontend Controller (Bilingual English/Kannada + LLM AI Assistant)
  */
 
 let currentImageBase64 = null;
 let currentPredictionResult = null;
 let webcamStream = null;
 let assessmentHistory = [];
+let currentLang = "en"; // Default English
 
 // Initialize on DOM load
 document.addEventListener("DOMContentLoaded", () => {
@@ -15,7 +16,57 @@ document.addEventListener("DOMContentLoaded", () => {
     loadHistoryFromStorage();
     autoGenerateID();
     setupScrollListeners();
+    initLanguage();
 });
+
+/* --------------------------------------------------------------------------
+   Language Switcher & Internationalization (i18n)
+   -------------------------------------------------------------------------- */
+function initLanguage() {
+    const savedLang = localStorage.getItem("app_lang") || "en";
+    setLanguage(savedLang);
+}
+
+function setLanguage(lang) {
+    if (!TRANSLATIONS[lang]) return;
+    currentLang = lang;
+    localStorage.setItem("app_lang", lang);
+
+    // Update switcher button states
+    const langEnBtn = document.getElementById("langEnBtn");
+    const langKnBtn = document.getElementById("langKnBtn");
+    if (langEnBtn && langKnBtn) {
+        if (lang === "kn") {
+            langKnBtn.classList.add("active");
+            langEnBtn.classList.remove("active");
+        } else {
+            langEnBtn.classList.add("active");
+            langKnBtn.classList.remove("active");
+        }
+    }
+
+    // Update text for all elements with data-i18n
+    const dict = TRANSLATIONS[lang];
+    document.querySelectorAll("[data-i18n]").forEach(elem => {
+        const key = elem.getAttribute("data-i18n");
+        if (dict[key]) {
+            elem.innerText = dict[key];
+        }
+    });
+
+    // Update placeholders with data-i18n-ph
+    document.querySelectorAll("[data-i18n-ph]").forEach(elem => {
+        const key = elem.getAttribute("data-i18n-ph");
+        if (dict[key]) {
+            elem.placeholder = dict[key];
+        }
+    });
+
+    // Update summary text if results are displayed
+    if (currentPredictionResult) {
+        renderBinaryResults(currentPredictionResult);
+    }
+}
 
 /* --------------------------------------------------------------------------
    Theme Switcher & LocalStorage Persistence
@@ -168,7 +219,7 @@ function processSelectedFile(file) {
     reader.onload = (e) => {
         currentImageBase64 = e.target.result;
         displayImageStagePreview(currentImageBase64, file.name);
-        showToast("Image selected successfully!", "success");
+        showToast(currentLang === 'kn' ? "ಚಿತ್ರವನ್ನು ಯಶಸ್ವಿಯಾಗಿ ಆಯ್ಕೆಮಾಡಲಾಗಿದೆ!" : "Image selected successfully!", "success");
     };
     reader.readAsDataURL(file);
 }
@@ -194,10 +245,10 @@ async function startCamera() {
         startBtn.disabled = true;
         captureBtn.disabled = false;
         stopBtn.disabled = false;
-        showToast("Camera active", "info");
+        showToast(currentLang === 'kn' ? "ಕ್ಯಾಮೆರಾ ಸಕ್ರಿಯವಾಗಿದೆ" : "Camera active", "info");
     } catch (err) {
         console.error("Camera Access Error:", err);
-        showToast("Unable to access webcam. Check camera permissions.", "error");
+        showToast("Unable to access webcam.", "error");
     }
 }
 
@@ -215,7 +266,7 @@ function captureSnapshot() {
     currentImageBase64 = canvas.toDataURL("image/jpeg");
     displayImageStagePreview(currentImageBase64, "webcam_snapshot.jpg");
     stopCamera();
-    showToast("Photo captured!", "success");
+    showToast(currentLang === 'kn' ? "ಫೋಟೋ ಸೆರೆಹಿಡಿಯಲಾಗಿದೆ!" : "Photo captured!", "success");
 }
 
 function stopCamera() {
@@ -262,7 +313,7 @@ function closeConfirmDeleteModal() {
 function confirmRemoveImage() {
     closeConfirmDeleteModal();
     resetAssessment();
-    showToast("Image removed", "info");
+    showToast(currentLang === 'kn' ? "ಚಿತ್ರವನ್ನು ತೆಗೆದುಹಾಕಲಾಗಿದೆ" : "Image removed", "info");
 }
 
 function resetAssessment() {
@@ -275,11 +326,11 @@ function resetAssessment() {
 }
 
 /* --------------------------------------------------------------------------
-   Run Damage Assessment (Strict Binary AI Model Evaluation)
+   Run Damage Assessment
    -------------------------------------------------------------------------- */
 async function runDamageAssessment() {
     if (!currentImageBase64) {
-        showToast("Please upload an image or capture a photo first!", "error");
+        showToast(currentLang === 'kn' ? "ದಯವಿಟ್ಟು ಮೊದಲ ಚಿತ್ರವನ್ನು ಆಯ್ಕೆಮಾಡಿ!" : "Please select an image first!", "error");
         return;
     }
 
@@ -307,7 +358,7 @@ async function runDamageAssessment() {
         updateProgressStep("stepDetect", "done");
         updateProgressStep("stepReport", "active");
 
-        await new Promise(r => setTimeout(r, 450)); // smooth step transition
+        await new Promise(r => setTimeout(r, 450));
 
         loadingOverlay.style.display = "none";
         scannerBeamOverlay.classList.remove("active");
@@ -315,7 +366,7 @@ async function runDamageAssessment() {
         if (data.status === "success") {
             currentPredictionResult = data;
             renderBinaryResults(data);
-            showToast("Assessment Complete!", "success");
+            showToast(currentLang === 'kn' ? "ತಪಾಸಣೆ ಪೂರ್ಣಗೊಂಡಿದೆ!" : "Assessment Complete!", "success");
         } else {
             showToast("Assessment Error: " + (data.message || "Unknown error"), "error");
         }
@@ -341,40 +392,137 @@ function updateProgressStep(stepId, state) {
 }
 
 /* --------------------------------------------------------------------------
-   Strict Binary Results Renderer
+   Binary Results Renderer (Bilingual Support)
    -------------------------------------------------------------------------- */
 function renderBinaryResults(data) {
     const resultsSection = document.getElementById("resultsSection");
     const resultImage = document.getElementById("resultImage");
     const predictionStatusCard = document.getElementById("predictionStatusCard");
-    const statusIconCircle = document.getElementById("statusIconCircle");
     const statusMainIcon = document.getElementById("statusMainIcon");
     const statusHeading = document.getElementById("statusHeading");
     const summaryText = document.getElementById("summaryText");
 
-    // Display Uploaded Image beside result card
     if (resultImage && currentImageBase64) {
         resultImage.src = currentImageBase64;
     }
 
-    // Determine binary prediction (Damaged vs No Damage Detected)
     const isDamaged = data.prediction === "Damaged";
+    const dict = TRANSLATIONS[currentLang] || TRANSLATIONS.en;
 
     if (isDamaged) {
         predictionStatusCard.className = "result-card prediction-status-card damaged-mode";
         statusMainIcon.className = "fa-solid fa-circle-exclamation";
-        statusHeading.innerText = "Damaged";
-        summaryText.innerText = "The AI model detected visible signs that indicate the vehicle is damaged. This prediction is based on image analysis.";
+        statusHeading.innerText = dict.status_damaged;
+        summaryText.innerText = dict.summary_damaged_text;
     } else {
         predictionStatusCard.className = "result-card prediction-status-card nodamage-mode";
         statusMainIcon.className = "fa-solid fa-circle-check";
-        statusHeading.innerText = "No Damage Detected";
-        summaryText.innerText = "The AI model did not detect visible damage in the uploaded image.";
+        statusHeading.innerText = dict.status_nodamage;
+        summaryText.innerText = dict.summary_nodamage_text;
     }
 
-    // Reveal results page & smooth scroll
     resultsSection.style.display = "block";
     resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+/* --------------------------------------------------------------------------
+   AI Claims Assistant Chatbot Drawer & LLM API Integration
+   -------------------------------------------------------------------------- */
+function toggleChatDrawer() {
+    const chatDrawer = document.getElementById("chatDrawerContainer");
+    if (!chatDrawer) return;
+
+    if (chatDrawer.style.display === "flex") {
+        chatDrawer.style.display = "none";
+    } else {
+        chatDrawer.style.display = "flex";
+        document.getElementById("chatInputText").focus();
+    }
+}
+
+function sendFaqQuestion(faqId) {
+    const dict = TRANSLATIONS[currentLang] || TRANSLATIONS.en;
+    let questionText = "";
+    if (faqId === 1) questionText = dict.faq_1.replace(/📋\s*/, '');
+    else if (faqId === 2) questionText = dict.faq_2.replace(/⚠️\s*/, '');
+    else if (faqId === 3) questionText = dict.faq_3.replace(/🤖\s*/, '');
+    else if (faqId === 4) questionText = dict.faq_4.replace(/⏱️\s*/, '');
+
+    if (questionText) {
+        processSendChatMessage(questionText);
+    }
+}
+
+function handleSendChat(e) {
+    e.preventDefault();
+    const chatInputText = document.getElementById("chatInputText");
+    const message = chatInputText.value.trim();
+    if (!message) return;
+
+    chatInputText.value = "";
+    processSendChatMessage(message);
+}
+
+async function processSendChatMessage(message) {
+    const chatMessagesBody = document.getElementById("chatMessagesBody");
+    const btnChatSend = document.getElementById("btnChatSend");
+
+    // Append User Message Bubble
+    appendChatMessage("user", message);
+
+    // Append Loading Indicator Bubble
+    const loadingBubbleId = "msg_loading_" + Date.now();
+    appendChatMessage("bot", `<i class="fa-solid fa-spinner spinner"></i> ${currentLang === 'kn' ? 'AI ಉತ್ತರಿಸುತ್ತಿದೆ...' : 'AI is thinking...'}`, loadingBubbleId);
+
+    btnChatSend.disabled = true;
+
+    try {
+        const vehicleCtx = currentPredictionResult ? currentPredictionResult.prediction : "";
+        const response = await fetch("/api/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                message: message,
+                language: currentLang,
+                vehicle_context: vehicleCtx
+            })
+        });
+
+        const data = await response.json();
+        btnChatSend.disabled = false;
+
+        // Remove loading bubble
+        const loadingBubbleElem = document.getElementById(loadingBubbleId);
+        if (loadingBubbleElem) loadingBubbleElem.remove();
+
+        if (data.status === "success" && data.reply) {
+            appendChatMessage("bot", data.reply);
+        } else {
+            appendChatMessage("bot", currentLang === 'kn' ? "ಕ್ಷಮಿಸಿ, ಮರುಪ್ರಯತ್ನಿಸಿ." : "Sorry, unable to get response. Please try again.");
+        }
+
+    } catch (err) {
+        btnChatSend.disabled = false;
+        const loadingBubbleElem = document.getElementById(loadingBubbleId);
+        if (loadingBubbleElem) loadingBubbleElem.remove();
+        console.error("Chat API Error:", err);
+        appendChatMessage("bot", currentLang === 'kn' ? "ಸಂಪರ್ಕ ದೋಷ ಸಂಭವಿಸಿದೆ." : "Connection error to AI assistant.");
+    }
+}
+
+function appendChatMessage(sender, text, elementId = null) {
+    const chatMessagesBody = document.getElementById("chatMessagesBody");
+    if (!chatMessagesBody) return;
+
+    const msgDiv = document.createElement("div");
+    msgDiv.className = `chat-msg ${sender}`;
+    if (elementId) msgDiv.id = elementId;
+
+    const avatarHtml = sender === "bot" ? `<i class="fa-solid fa-robot bot-avatar"></i>` : "";
+    msgDiv.innerHTML = `${avatarHtml}<div class="msg-bubble">${text}</div>`;
+
+    chatMessagesBody.appendChild(msgDiv);
+    chatMessagesBody.scrollTop = chatMessagesBody.scrollHeight;
 }
 
 /* --------------------------------------------------------------------------
@@ -411,7 +559,7 @@ async function handleGenerateReport(e) {
 
     const btnCompilePdf = document.getElementById("btnCompilePdf");
     btnCompilePdf.disabled = true;
-    btnCompilePdf.innerHTML = `<i class="fa-solid fa-spinner spinner"></i> Compiling PDF...`;
+    btnCompilePdf.innerHTML = `<i class="fa-solid fa-spinner spinner"></i> ${currentLang === 'kn' ? 'PDF ಸಿದ್ಧಪಡಿಸಲಾಗುತ್ತಿದೆ...' : 'Compiling PDF...'}`;
 
     const payload = {
         inspector_name: inspectorName,
@@ -447,7 +595,6 @@ async function handleGenerateReport(e) {
             downloadAnchor.click();
             document.body.removeChild(downloadAnchor);
 
-            // Save to local storage history
             saveAssessmentToHistory({
                 timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
                 inspection_id: inspectionId,
@@ -455,7 +602,7 @@ async function handleGenerateReport(e) {
                 report_url: data.report_url
             });
 
-            showToast("PDF Report Downloaded!", "success");
+            showToast(currentLang === 'kn' ? "PDF ವರದಿ ಡೌನ್‌ಲೋಡ್ ಆಗಿದೆ!" : "PDF Report Downloaded!", "success");
         } else {
             showToast("PDF Error: " + (data.message || "Failed to generate PDF"), "error");
         }
@@ -496,19 +643,20 @@ function renderHistoryTable() {
     if (!tableBody) return;
 
     if (assessmentHistory.length === 0) {
+        const dict = TRANSLATIONS[currentLang] || TRANSLATIONS.en;
         tableBody.innerHTML = `
             <tr id="emptyHistoryRow">
                 <td colspan="4" class="empty-table-cell">
                     <i class="fa-solid fa-folder-open"></i>
-                    <p>No records saved yet. Complete an assessment to see history here.</p>
+                    <p>${dict.history_empty}</p>
                 </td>
             </tr>
         `;
-        if (historyCount) historyCount.innerText = "0 Assessment Records";
+        if (historyCount) historyCount.innerText = "0 Records";
         return;
     }
 
-    if (historyCount) historyCount.innerText = `${assessmentHistory.length} Assessment Records`;
+    if (historyCount) historyCount.innerText = `${assessmentHistory.length} Records`;
 
     tableBody.innerHTML = assessmentHistory.map(rec => `
         <tr>
@@ -526,7 +674,7 @@ function clearSessionHistory() {
     assessmentHistory = [];
     localStorage.removeItem("vehicle_assessment_history_binary");
     renderHistoryTable();
-    showToast("History cleared", "info");
+    showToast(currentLang === 'kn' ? "ಇತಿಹಾಸವನ್ನು ಅಳಿಸಲಾಗಿದೆ" : "History cleared", "info");
 }
 
 /* --------------------------------------------------------------------------

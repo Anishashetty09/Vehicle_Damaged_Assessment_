@@ -24,24 +24,31 @@
                     <i class="fa-solid fa-car-burst logo-icon"></i>
                 </div>
                 <div>
-                    <h1>AI Vehicle Damage Detection</h1>
-                    <p class="subtitle">Binary AI Image Classification</p>
+                    <h1 data-i18n="brand_title">AI Vehicle Damage Detection</h1>
+                    <p class="subtitle" data-i18n="brand_subtitle">Binary AI Image Classification</p>
                 </div>
             </div>
             
             <nav class="nav-menu" id="navMenu">
-                <a href="#home" class="nav-link active" onclick="navigateTo('home')"><i class="fa-solid fa-house"></i> Home</a>
-                <a href="#assessment" class="nav-link nav-cta" onclick="navigateTo('assessment')"><i class="fa-solid fa-wand-magic-sparkles"></i> Start Assessment</a>
-                <a href="#history" class="nav-link" onclick="navigateTo('history')"><i class="fa-solid fa-clock-rotate-left"></i> History</a>
+                <a href="#home" class="nav-link active" onclick="navigateTo('home')"><i class="fa-solid fa-house"></i> <span data-i18n="nav_home">Home</span></a>
+                <a href="#assessment" class="nav-link nav-cta" onclick="navigateTo('assessment')"><i class="fa-solid fa-wand-magic-sparkles"></i> <span data-i18n="nav_assessment">Start Assessment</span></a>
+                <a href="javascript:void(0)" class="nav-link" onclick="toggleChatDrawer()"><i class="fa-solid fa-robot"></i> <span data-i18n="nav_assistant">AI Assistant</span></a>
+                <a href="#history" class="nav-link" onclick="navigateTo('history')"><i class="fa-solid fa-clock-rotate-left"></i> <span data-i18n="nav_history">History</span></a>
             </nav>
 
             <div class="header-actions">
+                <!-- KANNADA / ENGLISH LANGUAGE SWITCHER -->
+                <div class="lang-switcher-box">
+                    <button class="lang-btn active" id="langEnBtn" onclick="setLanguage('en')">EN</button>
+                    <button class="lang-btn" id="langKnBtn" onclick="setLanguage('kn')">ಕನ್ನಡ</button>
+                </div>
+
                 <button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Toggle Dark/Light Mode">
                     <i class="fa-solid fa-moon" id="themeIcon"></i>
                 </button>
                 <div class="header-badges desktop-only">
                     <span class="badge pytorch-badge"><i class="fa-solid fa-fire"></i> PyTorch CNN</span>
-                    <span class="badge status-badge-online"><i class="fa-solid fa-circle"></i> Model Ready</span>
+                    <span class="badge status-badge-online"><i class="fa-solid fa-circle"></i> <span data-i18n="model_ready">Model Ready</span></span>
                 </div>
                 <button class="mobile-nav-toggle" onclick="toggleMobileNav()"><i class="fa-solid fa-bars"></i></button>
             </div>
@@ -55,14 +62,14 @@
         <section class="page-section hero-section active" id="homeSection">
             <div class="hero-container">
                 <div class="hero-text-content">
-                    <span class="hero-pill"><i class="fa-solid fa-robot"></i> Binary AI Classification</span>
-                    <h1 class="hero-title">AI Vehicle Damage Detection</h1>
-                    <p class="hero-description">
+                    <span class="hero-pill"><i class="fa-solid fa-robot"></i> <span data-i18n="hero_pill">Binary AI Classification</span></span>
+                    <h1 class="hero-title" data-i18n="hero_title">AI Vehicle Damage Detection</h1>
+                    <p class="hero-description" data-i18n="hero_desc">
                         Upload or capture a vehicle image and let the AI determine whether the vehicle appears damaged or not damaged in just a few seconds.
                     </p>
                     <div class="hero-cta-group">
                         <button class="btn-hero-primary" onclick="navigateTo('assessment')">
-                            <span>Start Assessment</span> <i class="fa-solid fa-arrow-right"></i>
+                            <span data-i18n="btn_start_assessment">Start Assessment</span> <i class="fa-solid fa-arrow-right"></i>
                         </button>
                     </div>
                 </div>
@@ -80,8 +87,8 @@
                             <div class="hero-scan-beam"></div>
                         </div>
                         <div class="visual-card-footer">
-                            <div class="footer-chip danger"><i class="fa-solid fa-triangle-exclamation"></i> Damaged</div>
-                            <div class="footer-chip success"><i class="fa-solid fa-circle-check"></i> No Damage Detected</div>
+                            <div class="footer-chip danger"><i class="fa-solid fa-triangle-exclamation"></i> <span data-i18n="chip_damaged">Damaged</span></div>
+                            <div class="footer-chip success"><i class="fa-solid fa-circle-check"></i> <span data-i18n="chip_nodamage">No Damage Detected</span></div>
                         </div>
                     </div>
                 </div>
@@ -91,9 +98,9 @@
         <!-- SECTION 2: ASSESSMENT & UPLOAD PAGE -->
         <section class="page-section assessment-section" id="assessmentSection">
             <div class="section-header">
-                <span class="section-tag"><i class="fa-solid fa-camera"></i> Image Acquisition</span>
-                <h2>Vehicle Damage Assessment</h2>
-                <p>Upload or capture a vehicle photo to evaluate exterior status.</p>
+                <span class="section-tag"><i class="fa-solid fa-camera"></i> <span data-i18n="acquisition_tag">Image Acquisition</span></span>
+                <h2 data-i18n="acquisition_title">Vehicle Damage Assessment</h2>
+                <p data-i18n="acquisition_desc">Upload or capture a vehicle photo to evaluate exterior status.</p>
             </div>
 
             <div class="assessment-card-wrapper">
@@ -102,10 +109,10 @@
                     <div class="acquisition-header">
                         <div class="acquisition-tabs">
                             <button class="tab-btn active" id="tabUploadBtn" onclick="switchAcquisitionTab('upload')">
-                                <i class="fa-solid fa-cloud-arrow-up"></i> Upload Image
+                                <i class="fa-solid fa-cloud-arrow-up"></i> <span data-i18n="tab_upload">Upload Image</span>
                             </button>
                             <button class="tab-btn" id="tabCameraBtn" onclick="switchAcquisitionTab('camera')">
-                                <i class="fa-solid fa-camera"></i> Live Camera
+                                <i class="fa-solid fa-camera"></i> <span data-i18n="tab_camera">Live Camera</span>
                             </button>
                         </div>
                     </div>
@@ -116,9 +123,9 @@
                             <input type="file" id="fileInput" accept="image/jpeg, image/png, image/webp" style="display: none;" onchange="handleFileSelect(event)">
                             <div class="dropzone-content">
                                 <div class="drop-icon-pulse"><i class="fa-solid fa-cloud-arrow-up"></i></div>
-                                <h3>Drag & Drop Vehicle Image Here</h3>
-                                <p>or click to browse from your device</p>
-                                <span class="file-types-tag"><i class="fa-solid fa-circle-info"></i> Supports JPG, PNG, WEBP (Max 16MB)</span>
+                                <h3 data-i18n="dropzone_title">Drag & Drop Vehicle Image Here</h3>
+                                <p data-i18n="dropzone_sub">or click to browse from your device</p>
+                                <span class="file-types-tag"><i class="fa-solid fa-circle-info"></i> <span data-i18n="dropzone_formats">Supports JPG, PNG, WEBP (Max 16MB)</span></span>
                             </div>
                         </div>
                     </div>
@@ -130,14 +137,14 @@
                             <canvas id="snapshotCanvas" style="display: none;"></canvas>
                             <div class="camera-placeholder" id="cameraPlaceholder">
                                 <i class="fa-solid fa-video-slash"></i>
-                                <p>Camera is inactive</p>
+                                <p data-i18n="cam_inactive">Camera is inactive</p>
                                 <span>Click 'Start Camera' to begin</span>
                             </div>
                         </div>
                         <div class="camera-actions-bar">
-                            <button class="btn-secondary" id="startCamBtn" onclick="startCamera()"><i class="fa-solid fa-power-off"></i> Start Camera</button>
-                            <button class="btn-primary" id="captureCamBtn" onclick="captureSnapshot()" disabled><i class="fa-solid fa-camera-retro"></i> Capture Photo</button>
-                            <button class="btn-secondary" id="stopCamBtn" onclick="stopCamera()" disabled><i class="fa-solid fa-stop"></i> Stop</button>
+                            <button class="btn-secondary" id="startCamBtn" onclick="startCamera()"><i class="fa-solid fa-power-off"></i> <span data-i18n="cam_start">Start Camera</span></button>
+                            <button class="btn-primary" id="captureCamBtn" onclick="captureSnapshot()" disabled><i class="fa-solid fa-camera-retro"></i> <span data-i18n="cam_capture">Capture Photo</span></button>
+                            <button class="btn-secondary" id="stopCamBtn" onclick="stopCamera()" disabled><i class="fa-solid fa-stop"></i> <span data-i18n="cam_stop">Stop</span></button>
                         </div>
                     </div>
                 </div>
@@ -145,7 +152,7 @@
                 <!-- PREVIEW & RUN ASSESSMENT STAGE -->
                 <div class="preview-stage-card" id="previewStageCard" style="display: none;">
                     <div class="stage-header">
-                        <span><i class="fa-solid fa-image"></i> Selected Vehicle Image</span>
+                        <span><i class="fa-solid fa-image"></i> <span data-i18n="selected_img">Selected Vehicle Image</span></span>
                         <div class="stage-actions">
                             <button class="btn-icon" onclick="openLightbox()" title="Zoom Image"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
                             <button class="btn-icon danger" onclick="promptRemoveImage()" title="Remove Image"><i class="fa-solid fa-trash"></i></button>
@@ -162,7 +169,7 @@
                     <div class="stage-footer">
                         <span id="previewFilename"><i class="fa-solid fa-file-image"></i> vehicle_sample.jpg</span>
                         <button class="btn-run-assessment" id="runAssessmentBtn" onclick="runDamageAssessment()">
-                            <i class="fa-solid fa-wand-magic-sparkles"></i> Run Assessment
+                            <i class="fa-solid fa-wand-magic-sparkles"></i> <span data-i18n="btn_run_assessment">Run Assessment</span>
                         </button>
                     </div>
                 </div>
@@ -171,14 +178,14 @@
                 <div class="loading-overlay" id="loadingOverlay" style="display: none;">
                     <div class="loader-content-box">
                         <div class="spinner-ring"></div>
-                        <h3 id="loaderTitle">Analyzing Vehicle Image</h3>
-                        <p id="loaderSubtext">Evaluating model features...</p>
+                        <h3 id="loaderTitle" data-i18n="loading_title">Analyzing Vehicle Image</h3>
+                        <p id="loaderSubtext" data-i18n="loading_sub">Evaluating model features...</p>
                         
                         <div class="progress-steps-list">
-                            <div class="p-step active" id="stepUpload"><i class="fa-solid fa-circle-check"></i> Uploading Image...</div>
-                            <div class="p-step" id="stepAI"><i class="fa-solid fa-spinner spinner"></i> Analyzing Image...</div>
-                            <div class="p-step" id="stepDetect"><i class="fa-solid fa-circle-notch"></i> Running AI Model...</div>
-                            <div class="p-step" id="stepReport"><i class="fa-solid fa-circle-notch"></i> Generating Result...</div>
+                            <div class="p-step active" id="stepUpload"><i class="fa-solid fa-circle-check"></i> <span data-i18n="step_uploading">Uploading Image...</span></div>
+                            <div class="p-step" id="stepAI"><i class="fa-solid fa-spinner spinner"></i> <span data-i18n="step_analyzing">Analyzing Image...</span></div>
+                            <div class="p-step" id="stepDetect"><i class="fa-solid fa-circle-notch"></i> <span data-i18n="step_running">Running AI Model...</span></div>
+                            <div class="p-step" id="stepReport"><i class="fa-solid fa-circle-notch"></i> <span data-i18n="step_generating">Generating Result...</span></div>
                         </div>
                     </div>
                 </div>
@@ -189,9 +196,9 @@
         <!-- SECTION 3: RESULTS PAGE -->
         <section class="page-section results-section" id="resultsSection" style="display: none;">
             <div class="section-header">
-                <span class="section-tag"><i class="fa-solid fa-square-poll-vertical"></i> Assessment Complete</span>
-                <h2>Prediction Result</h2>
-                <p>Genuine classification output from the AI model.</p>
+                <span class="section-tag"><i class="fa-solid fa-square-poll-vertical"></i> <span data-i18n="res_header_tag">Assessment Complete</span></span>
+                <h2 data-i18n="res_header_title">Prediction Result</h2>
+                <p data-i18n="res_header_sub">Genuine classification output from the AI model.</p>
             </div>
 
             <div class="results-layout-wrapper">
@@ -202,7 +209,7 @@
                     <!-- UPLOADED IMAGE BOX -->
                     <div class="result-card image-display-card">
                         <div class="card-header">
-                            <h3><i class="fa-solid fa-image text-primary"></i> Uploaded Image</h3>
+                            <h3><i class="fa-solid fa-image text-primary"></i> <span data-i18n="res_uploaded_img">Uploaded Image</span></h3>
                         </div>
                         <div class="result-image-box">
                             <img id="resultImage" src="" alt="Uploaded Vehicle">
@@ -212,21 +219,21 @@
                     <!-- PROMINENT BINARY PREDICTION CARD -->
                     <div class="result-card prediction-status-card" id="predictionStatusCard">
                         <div class="card-header">
-                            <h3><i class="fa-solid fa-robot text-primary"></i> Vehicle Status</h3>
+                            <h3><i class="fa-solid fa-robot text-primary"></i> <span data-i18n="res_vehicle_status">Vehicle Status</span></h3>
                         </div>
                         
                         <div class="status-result-display" id="statusResultDisplay">
                             <div class="status-icon-circle" id="statusIconCircle">
                                 <i class="fa-solid fa-circle-exclamation" id="statusMainIcon"></i>
                             </div>
-                            <span class="status-caption">MODEL PREDICTION</span>
-                            <h2 class="status-heading" id="statusHeading">Damaged</h2>
+                            <span class="status-caption" data-i18n="res_model_pred">MODEL PREDICTION</span>
+                            <h2 class="status-heading" id="statusHeading" data-i18n="status_damaged">Damaged</h2>
                         </div>
 
                         <!-- TRUTHFUL AI SUMMARY -->
                         <div class="summary-callout-box">
-                            <span class="summary-label"><i class="fa-solid fa-quote-left text-primary"></i> AI Summary</span>
-                            <p class="summary-text" id="summaryText">
+                            <span class="summary-label"><i class="fa-solid fa-quote-left text-primary"></i> <span data-i18n="summary_title">AI Summary</span></span>
+                            <p class="summary-text" id="summaryText" data-i18n="summary_damaged_text">
                                 The AI model detected visible signs that indicate the vehicle is damaged. This prediction is based on image analysis.
                             </p>
                         </div>
@@ -238,16 +245,16 @@
                 <div class="result-card actions-card">
                     <div class="actions-flex">
                         <button class="btn-action-lg primary" onclick="resetAssessment()">
-                            <i class="fa-solid fa-rotate-left"></i> Assess Another Image
+                            <i class="fa-solid fa-rotate-left"></i> <span data-i18n="btn_assess_another">Assess Another Image</span>
                         </button>
                         <button class="btn-action-lg secondary" onclick="triggerNewUpload()">
-                            <i class="fa-solid fa-cloud-arrow-up"></i> Upload New Image
+                            <i class="fa-solid fa-cloud-arrow-up"></i> <span data-i18n="btn_upload_new">Upload New Image</span>
                         </button>
                         <button class="btn-action-lg outline" onclick="navigateTo('home')">
-                            <i class="fa-solid fa-house"></i> Return Home
+                            <i class="fa-solid fa-house"></i> <span data-i18n="btn_return_home">Return Home</span>
                         </button>
                         <button class="btn-action-lg success" onclick="openPdfModal()">
-                            <i class="fa-solid fa-file-pdf"></i> Download Result as PDF
+                            <i class="fa-solid fa-file-pdf"></i> <span data-i18n="btn_download_pdf">Download Result as PDF</span>
                         </button>
                     </div>
                 </div>
@@ -258,31 +265,31 @@
         <!-- SECTION 4: ASSESSMENT HISTORY -->
         <section class="page-section history-section" id="historySection">
             <div class="section-header">
-                <span class="section-tag"><i class="fa-solid fa-clock-rotate-left"></i> Local Logs</span>
-                <h2>Assessment History</h2>
-                <p>Saved binary prediction records from your session.</p>
+                <span class="section-tag"><i class="fa-solid fa-clock-rotate-left"></i> <span data-i18n="history_tag">Local Logs</span></span>
+                <h2 data-i18n="history_title">Assessment History</h2>
+                <p data-i18n="history_sub">Saved binary prediction records from your session.</p>
             </div>
 
             <div class="history-table-card">
                 <div class="table-actions-bar">
                     <span class="history-count" id="historyCount">0 Assessment Records</span>
-                    <button class="btn-danger-sm" onclick="clearSessionHistory()"><i class="fa-solid fa-trash"></i> Clear History</button>
+                    <button class="btn-danger-sm" onclick="clearSessionHistory()"><i class="fa-solid fa-trash"></i> <span data-i18n="btn_clear_history">Clear History</span></button>
                 </div>
                 <div class="table-responsive">
                     <table class="history-table">
                         <thead>
                             <tr>
-                                <th>Timestamp</th>
-                                <th>Inspection ID</th>
-                                <th>Vehicle Status</th>
-                                <th>Actions</th>
+                                <th data-i18n="th_time">Timestamp</th>
+                                <th data-i18n="th_id">Inspection ID</th>
+                                <th data-i18n="th_status">Vehicle Status</th>
+                                <th data-i18n="th_actions">Actions</th>
                             </tr>
                         </thead>
                         <tbody id="historyTableBody">
                             <tr id="emptyHistoryRow">
                                 <td colspan="4" class="empty-table-cell">
                                     <i class="fa-solid fa-folder-open"></i>
-                                    <p>No records saved yet. Complete an assessment to see history here.</p>
+                                    <p data-i18n="history_empty">No records saved yet. Complete an assessment to see history here.</p>
                                 </td>
                             </tr>
                         </tbody>
@@ -293,28 +300,76 @@
 
     </main>
 
+    <!-- AI CLAIMS ASSISTANT FLOATING CHAT DRAWER -->
+    <div class="chat-drawer-container" id="chatDrawerContainer">
+        <div class="chat-drawer-header">
+            <div class="chat-title-group">
+                <i class="fa-solid fa-robot chat-header-icon"></i>
+                <div>
+                    <h4 data-i18n="chat_header">AI Claims Assistant</h4>
+                    <span data-i18n="chat_sub">Ask any question in English or ಕನ್ನಡ</span>
+                </div>
+            </div>
+            <button class="chat-close-btn" onclick="toggleChatDrawer()">&times;</button>
+        </div>
+
+        <!-- FAQ SUGGESTIONS CHIPS AREA -->
+        <div class="chat-faq-area">
+            <span class="faq-section-title" data-i18n="chat_faq_title">Frequently Asked Questions:</span>
+            <div class="faq-chips-list">
+                <button class="faq-chip" onclick="sendFaqQuestion(1)" data-i18n="faq_1">📋 What documents are required for a claim?</button>
+                <button class="faq-chip" onclick="sendFaqQuestion(2)" data-i18n="faq_2">⚠️ What are the next steps if vehicle is damaged?</button>
+                <button class="faq-chip" onclick="sendFaqQuestion(3)" data-i18n="faq_3">🤖 How does AI damage detection work?</button>
+                <button class="faq-chip" onclick="sendFaqQuestion(4)" data-i18n="faq_4">⏱️ How long does claim approval take?</button>
+            </div>
+        </div>
+
+        <!-- CHAT MESSAGES BODY -->
+        <div class="chat-messages-body" id="chatMessagesBody">
+            <div class="chat-msg bot">
+                <i class="fa-solid fa-robot bot-avatar"></i>
+                <div class="msg-bubble">
+                    Hello! I am your AI Claims & Damage Inspection Assistant. Ask me anything or click one of the suggested questions above!
+                </div>
+            </div>
+        </div>
+
+        <!-- CHAT INPUT BAR -->
+        <form class="chat-input-bar" onsubmit="handleSendChat(event)">
+            <input type="text" id="chatInputText" placeholder="Type a question or select an FAQ..." data-i18n-ph="chat_placeholder" required>
+            <button type="submit" class="btn-chat-send" id="btnChatSend">
+                <span data-i18n="chat_send">Send</span> <i class="fa-solid fa-paper-plane"></i>
+            </button>
+        </form>
+    </div>
+
+    <!-- FLOATING CHAT TRIGGER BUTTON -->
+    <button class="fab-chat-btn" id="fabChatBtn" onclick="toggleChatDrawer()" title="AI Assistant">
+        <i class="fa-solid fa-message"></i>
+    </button>
+
     <!-- FOOTER -->
     <footer class="app-footer">
         <div class="footer-container">
             <div class="footer-brand">
                 <div class="footer-logo">
                     <i class="fa-solid fa-car-burst logo-icon"></i>
-                    <span>AI Vehicle Damage Detection</span>
+                    <span data-i18n="brand_title">AI Vehicle Damage Detection</span>
                 </div>
-                <p>Genuine PyTorch Convolutional Neural Network binary classification system.</p>
+                <p data-i18n="footer_desc">Genuine PyTorch Convolutional Neural Network binary classification system.</p>
             </div>
             <div class="footer-links">
                 <h4>Navigation</h4>
-                <a href="#home" onclick="navigateTo('home')">Home</a>
-                <a href="#assessment" onclick="navigateTo('assessment')">Start Assessment</a>
-                <a href="#history" onclick="navigateTo('history')">Assessment History</a>
+                <a href="#home" onclick="navigateTo('home')" data-i18n="nav_home">Home</a>
+                <a href="#assessment" onclick="navigateTo('assessment')" data-i18n="nav_assessment">Start Assessment</a>
+                <a href="#history" onclick="navigateTo('history')" data-i18n="nav_history">Assessment History</a>
             </div>
             <div class="footer-tech">
                 <h4>Engine Details</h4>
                 <div class="tech-stack-tags">
                     <span class="tech-tag"><i class="fa-solid fa-fire text-warning"></i> PyTorch CNN</span>
-                    <span class="tech-tag"><i class="fa-solid fa-server text-primary"></i> Python Flask</span>
-                    <span class="tech-tag"><i class="fa-solid fa-check text-success"></i> Binary Classifier</span>
+                    <span class="tech-tag"><i class="fa-solid fa-brain text-primary"></i> Gemini LLM</span>
+                    <span class="tech-tag"><i class="fa-solid fa-language text-success"></i> Kannada (ಕನ್ನಡ)</span>
                 </div>
             </div>
         </div>
@@ -402,7 +457,8 @@
         <i class="fa-solid fa-arrow-up"></i>
     </button>
 
-    <!-- Main JS File -->
+    <!-- Translations & Main JS Files -->
+    <script src="/static/js/translations.js"></script>
     <script src="/static/js/main.js"></script>
 </body>
 </html>
