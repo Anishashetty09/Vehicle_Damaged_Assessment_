@@ -1,0 +1,27 @@
+# Dataset zip & archive exclusions
+archive.zip
+archive_2/
+Sic_Project.ipynb
+
+# Python Bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environment & Virtualenvs
+.env
+venv/
+env/
+ENV/
+
+# Project generated artifacts
+uploads/*
+!uploads/.gitkeep
+reports/*
+!reports/.gitkeep
+
+# IDE / System
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

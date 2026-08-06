@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Vehicle Damage Detection</title>
+    <meta name="description" content="Upload or capture a vehicle image and let the AI determine whether the vehicle appears damaged or not damaged in just a few seconds.">
+    <!-- Google Fonts: Inter & Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom Stylesheet -->
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+    <!-- Sticky Navigation Bar -->
+    <header class="app-header" id="appHeader">
+        <div class="header-container">
+            <div class="brand-title" onclick="navigateTo('home')">
+                <div class="logo-icon-wrapper">
+                    <i class="fa-solid fa-car-burst logo-icon"></i>
+                </div>
+                <div>
+                    <h1>AI Vehicle Damage Detection</h1>
+                    <p class="subtitle">Binary AI Image Classification</p>
+                </div>
+            </div>
+            
+            <nav class="nav-menu" id="navMenu">
+                <a href="#home" class="nav-link active" onclick="navigateTo('home')"><i class="fa-solid fa-house"></i> Home</a>
+                <a href="#assessment" class="nav-link nav-cta" onclick="navigateTo('assessment')"><i class="fa-solid fa-wand-magic-sparkles"></i> Start Assessment</a>
+                <a href="#history" class="nav-link" onclick="navigateTo('history')"><i class="fa-solid fa-clock-rotate-left"></i> History</a>
+            </nav>
+
+            <div class="header-actions">
+                <button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Toggle Dark/Light Mode">
+                    <i class="fa-solid fa-moon" id="themeIcon"></i>
+                </button>
+                <div class="header-badges desktop-only">
+                    <span class="badge pytorch-badge"><i class="fa-solid fa-fire"></i> PyTorch CNN</span>
+                    <span class="badge status-badge-online"><i class="fa-solid fa-circle"></i> Model Ready</span>
+                </div>
+                <button class="mobile-nav-toggle" onclick="toggleMobileNav()"><i class="fa-solid fa-bars"></i></button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Layout -->
+    <main class="main-content">
+
+        <!-- SECTION 1: HERO LANDING PAGE -->
+        <section class="page-section hero-section active" id="homeSection">
+            <div class="hero-container">
+                <div class="hero-text-content">
+                    <span class="hero-pill"><i class="fa-solid fa-robot"></i> Binary AI Classification</span>
+                    <h1 class="hero-title">AI Vehicle Damage Detection</h1>
+                    <p class="hero-description">
+                        Upload or capture a vehicle image and let the AI determine whether the vehicle appears damaged or not damaged in just a few seconds.
+                    </p>
+                    <div class="hero-cta-group">
+                        <button class="btn-hero-primary" onclick="navigateTo('assessment')">
+                            <span>Start Assessment</span> <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="hero-visual">
+                    <div class="visual-card-glass">
+                        <div class="visual-card-header">
+                            <span class="dot red"></span>
+                            <span class="dot yellow"></span>
+                            <span class="dot green"></span>
+                            <span class="card-status-text"><i class="fa-solid fa-microchip"></i> PyTorch Binary Evaluator</span>
+                        </div>
+                        <div class="visual-preview-box">
+                            <img src="https://images.unsplash.com/photo-1549399542-7e3f8b79c341?q=80&w=800&auto=format&fit=crop" alt="Vehicle Graphic" class="hero-car-img">
+                            <div class="hero-scan-beam"></div>
+                        </div>
+                        <div class="visual-card-footer">
+                            <div class="footer-chip danger"><i class="fa-solid fa-triangle-exclamation"></i> Damaged</div>
+                            <div class="footer-chip success"><i class="fa-solid fa-circle-check"></i> No Damage Detected</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 2: ASSESSMENT & UPLOAD PAGE -->
+        <section class="page-section assessment-section" id="assessmentSection">
+            <div class="section-header">
+                <span class="section-tag"><i class="fa-solid fa-camera"></i> Image Acquisition</span>
+                <h2>Vehicle Damage Assessment</h2>
+                <p>Upload or capture a vehicle photo to evaluate exterior status.</p>
+            </div>
+
+            <div class="assessment-card-wrapper">
+                <!-- Acquisition Controls Panel -->
+                <div class="acquisition-panel">
+                    <div class="acquisition-header">
+                        <div class="acquisition-tabs">
+                            <button class="tab-btn active" id="tabUploadBtn" onclick="switchAcquisitionTab('upload')">
+                                <i class="fa-solid fa-cloud-arrow-up"></i> Upload Image
+                            </button>
+                            <button class="tab-btn" id="tabCameraBtn" onclick="switchAcquisitionTab('camera')">
+                                <i class="fa-solid fa-camera"></i> Live Camera
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- TAB 1: UPLOAD -->
+                    <div class="tab-body active" id="uploadTabBody">
+                        <div class="dropzone-box" id="dropzone" onclick="triggerFileInput()">
+                            <input type="file" id="fileInput" accept="image/jpeg, image/png, image/webp" style="display: none;" onchange="handleFileSelect(event)">
+                            <div class="dropzone-content">
+                                <div class="drop-icon-pulse"><i class="fa-solid fa-cloud-arrow-up"></i></div>
+                                <h3>Drag & Drop Vehicle Image Here</h3>
+                                <p>or click to browse from your device</p>
+                                <span class="file-types-tag"><i class="fa-solid fa-circle-info"></i> Supports JPG, PNG, WEBP (Max 16MB)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TAB 2: CAMERA -->
+                    <div class="tab-body" id="cameraTabBody">
+                        <div class="camera-preview-container">
+                            <video id="webcamVideo" autoplay playsinline muted style="display: none;"></video>
+                            <canvas id="snapshotCanvas" style="display: none;"></canvas>
+                            <div class="camera-placeholder" id="cameraPlaceholder">
+                                <i class="fa-solid fa-video-slash"></i>
+                                <p>Camera is inactive</p>
+                                <span>Click 'Start Camera' to begin</span>
+                            </div>
+                        </div>
+                        <div class="camera-actions-bar">
+                            <button class="btn-secondary" id="startCamBtn" onclick="startCamera()"><i class="fa-solid fa-power-off"></i> Start Camera</button>
+                            <button class="btn-primary" id="captureCamBtn" onclick="captureSnapshot()" disabled><i class="fa-solid fa-camera-retro"></i> Capture Photo</button>
+                            <button class="btn-secondary" id="stopCamBtn" onclick="stopCamera()" disabled><i class="fa-solid fa-stop"></i> Stop</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PREVIEW & RUN ASSESSMENT STAGE -->
+                <div class="preview-stage-card" id="previewStageCard" style="display: none;">
+                    <div class="stage-header">
+                        <span><i class="fa-solid fa-image"></i> Selected Vehicle Image</span>
+                        <div class="stage-actions">
+                            <button class="btn-icon" onclick="openLightbox()" title="Zoom Image"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
+                            <button class="btn-icon danger" onclick="promptRemoveImage()" title="Remove Image"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </div>
+
+                    <div class="stage-image-wrapper">
+                        <img id="previewImage" src="" alt="Vehicle Snapshot Preview">
+                        <div class="stage-scanner-beam" id="scannerBeamOverlay">
+                            <div class="scanner-sweep-line"></div>
+                        </div>
+                    </div>
+
+                    <div class="stage-footer">
+                        <span id="previewFilename"><i class="fa-solid fa-file-image"></i> vehicle_sample.jpg</span>
+                        <button class="btn-run-assessment" id="runAssessmentBtn" onclick="runDamageAssessment()">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i> Run Assessment
+                        </button>
+                    </div>
+                </div>
+
+                <!-- PROCESSING SCREEN OVERLAY -->
+                <div class="loading-overlay" id="loadingOverlay" style="display: none;">
+                    <div class="loader-content-box">
+                        <div class="spinner-ring"></div>
+                        <h3 id="loaderTitle">Analyzing Vehicle Image</h3>
+                        <p id="loaderSubtext">Evaluating model features...</p>
+                        
+                        <div class="progress-steps-list">
+                            <div class="p-step active" id="stepUpload"><i class="fa-solid fa-circle-check"></i> Uploading Image...</div>
+                            <div class="p-step" id="stepAI"><i class="fa-solid fa-spinner spinner"></i> Analyzing Image...</div>
+                            <div class="p-step" id="stepDetect"><i class="fa-solid fa-circle-notch"></i> Running AI Model...</div>
+                            <div class="p-step" id="stepReport"><i class="fa-solid fa-circle-notch"></i> Generating Result...</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- SECTION 3: RESULTS PAGE -->
+        <section class="page-section results-section" id="resultsSection" style="display: none;">
+            <div class="section-header">
+                <span class="section-tag"><i class="fa-solid fa-square-poll-vertical"></i> Assessment Complete</span>
+                <h2>Prediction Result</h2>
+                <p>Genuine classification output from the AI model.</p>
+            </div>
+
+            <div class="results-layout-wrapper">
+                
+                <!-- TOP COMPARISON & PREDICTION CARD -->
+                <div class="results-comparison-grid">
+                    
+                    <!-- UPLOADED IMAGE BOX -->
+                    <div class="result-card image-display-card">
+                        <div class="card-header">
+                            <h3><i class="fa-solid fa-image text-primary"></i> Uploaded Image</h3>
+                        </div>
+                        <div class="result-image-box">
+                            <img id="resultImage" src="" alt="Uploaded Vehicle">
+                        </div>
+                    </div>
+
+                    <!-- PROMINENT BINARY PREDICTION CARD -->
+                    <div class="result-card prediction-status-card" id="predictionStatusCard">
+                        <div class="card-header">
+                            <h3><i class="fa-solid fa-robot text-primary"></i> Vehicle Status</h3>
+                        </div>
+                        
+                        <div class="status-result-display" id="statusResultDisplay">
+                            <div class="status-icon-circle" id="statusIconCircle">
+                                <i class="fa-solid fa-circle-exclamation" id="statusMainIcon"></i>
+                            </div>
+                            <span class="status-caption">MODEL PREDICTION</span>
+                            <h2 class="status-heading" id="statusHeading">Damaged</h2>
+                        </div>
+
+                        <!-- TRUTHFUL AI SUMMARY -->
+                        <div class="summary-callout-box">
+                            <span class="summary-label"><i class="fa-solid fa-quote-left text-primary"></i> AI Summary</span>
+                            <p class="summary-text" id="summaryText">
+                                The AI model detected visible signs that indicate the vehicle is damaged. This prediction is based on image analysis.
+                            </p>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- ACTION BUTTONS BAR -->
+                <div class="result-card actions-card">
+                    <div class="actions-flex">
+                        <button class="btn-action-lg primary" onclick="resetAssessment()">
+                            <i class="fa-solid fa-rotate-left"></i> Assess Another Image
+                        </button>
+                        <button class="btn-action-lg secondary" onclick="triggerNewUpload()">
+                            <i class="fa-solid fa-cloud-arrow-up"></i> Upload New Image
+                        </button>
+                        <button class="btn-action-lg outline" onclick="navigateTo('home')">
+                            <i class="fa-solid fa-house"></i> Return Home
+                        </button>
+                        <button class="btn-action-lg success" onclick="openPdfModal()">
+                            <i class="fa-solid fa-file-pdf"></i> Download Result as PDF
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- SECTION 4: ASSESSMENT HISTORY -->
+        <section class="page-section history-section" id="historySection">
+            <div class="section-header">
+                <span class="section-tag"><i class="fa-solid fa-clock-rotate-left"></i> Local Logs</span>
+                <h2>Assessment History</h2>
+                <p>Saved binary prediction records from your session.</p>
+            </div>
+
+            <div class="history-table-card">
+                <div class="table-actions-bar">
+                    <span class="history-count" id="historyCount">0 Assessment Records</span>
+                    <button class="btn-danger-sm" onclick="clearSessionHistory()"><i class="fa-solid fa-trash"></i> Clear History</button>
+                </div>
+                <div class="table-responsive">
+                    <table class="history-table">
+                        <thead>
+                            <tr>
+                                <th>Timestamp</th>
+                                <th>Inspection ID</th>
+                                <th>Vehicle Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyTableBody">
+                            <tr id="emptyHistoryRow">
+                                <td colspan="4" class="empty-table-cell">
+                                    <i class="fa-solid fa-folder-open"></i>
+                                    <p>No records saved yet. Complete an assessment to see history here.</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="app-footer">
+        <div class="footer-container">
+            <div class="footer-brand">
+                <div class="footer-logo">
+                    <i class="fa-solid fa-car-burst logo-icon"></i>
+                    <span>AI Vehicle Damage Detection</span>
+                </div>
+                <p>Genuine PyTorch Convolutional Neural Network binary classification system.</p>
+            </div>
+            <div class="footer-links">
+                <h4>Navigation</h4>
+                <a href="#home" onclick="navigateTo('home')">Home</a>
+                <a href="#assessment" onclick="navigateTo('assessment')">Start Assessment</a>
+                <a href="#history" onclick="navigateTo('history')">Assessment History</a>
+            </div>
+            <div class="footer-tech">
+                <h4>Engine Details</h4>
+                <div class="tech-stack-tags">
+                    <span class="tech-tag"><i class="fa-solid fa-fire text-warning"></i> PyTorch CNN</span>
+                    <span class="tech-tag"><i class="fa-solid fa-server text-primary"></i> Python Flask</span>
+                    <span class="tech-tag"><i class="fa-solid fa-check text-success"></i> Binary Classifier</span>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 AI Vehicle Damage Detection Project. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- MODAL 1: INSPECTOR DETAILS FOR PDF -->
+    <div class="modal-backdrop" id="pdfInspectorModal" style="display: none;">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-id-card text-primary"></i> Download PDF Report</h3>
+                <button class="modal-close-btn" onclick="closePdfModal()">&times;</button>
+            </div>
+            <form id="inspectorForm" onsubmit="handleGenerateReport(event)">
+                <div class="modal-body">
+                    <p class="modal-subtext">Enter metadata to compile your downloadable PDF summary.</p>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="inspectorName">Inspector / User Name *</label>
+                            <input type="text" id="inspectorName" placeholder="e.g. John Doe" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="vehicleNo">Vehicle Registration *</label>
+                            <input type="text" id="vehicleNo" placeholder="e.g. KA-01-AB-1234" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="policyNo">Reference / Policy No *</label>
+                            <input type="text" id="policyNo" placeholder="e.g. POL-99882233" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="inspectionId">Inspection ID *</label>
+                            <div class="input-with-btn">
+                                <input type="text" id="inspectionId" placeholder="INSP-2026-XXXX" required>
+                                <button type="button" class="btn-small" onclick="autoGenerateID()"><i class="fa-solid fa-arrows-rotate"></i> Auto</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="inspectionNotes">Observations / Remarks</label>
+                        <textarea id="inspectionNotes" rows="2" placeholder="Enter optional notes..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" onclick="closePdfModal()">Cancel</button>
+                    <button type="submit" class="btn-success" id="btnCompilePdf">
+                        <i class="fa-solid fa-file-pdf"></i> Download PDF
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 2: LIGHTBOX ZOOM -->
+    <div class="modal-backdrop" id="lightboxModal" style="display: none;" onclick="closeLightbox()">
+        <div class="lightbox-content" onclick="event.stopPropagation()">
+            <button class="lightbox-close" onclick="closeLightbox()">&times;</button>
+            <img id="lightboxImage" src="" alt="Enlarged Vehicle Image">
+        </div>
+    </div>
+
+    <!-- MODAL 3: CONFIRM DELETE -->
+    <div class="modal-backdrop" id="confirmDeleteModal" style="display: none;">
+        <div class="modal-card small-modal">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-triangle-exclamation text-danger"></i> Remove Image</h3>
+                <button class="modal-close-btn" onclick="closeConfirmDeleteModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to remove the selected vehicle image?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" onclick="closeConfirmDeleteModal()">Cancel</button>
+                <button type="button" class="btn-danger-sm" onclick="confirmRemoveImage()">Remove</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION CONTAINER -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- FAB BACK TO TOP -->
+    <button class="fab-top-btn" id="fabTopBtn" onclick="scrollToTop()" title="Return to Top">
+        <i class="fa-solid fa-arrow-up"></i>
+    </button>
+
+    <!-- Main JS File -->
+    <script src="/static/js/main.js"></script>
+</body>
+</html>
