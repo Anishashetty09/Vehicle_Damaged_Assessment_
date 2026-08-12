@@ -838,3 +838,395 @@ body {
     .btn-action-lg { width: 100%; justify-content: center; }
     .chat-drawer-container { right: 1rem; left: 1rem; width: auto; bottom: 5rem; height: 500px; }
 }
+
+/* Category A & B UI Component Enhancements */
+.confidence-badge { background: rgba(59, 130, 246, 0.15); color: var(--primary); border: 1px solid rgba(59, 130, 246, 0.3); font-size: 0.82rem; padding: 0.3rem 0.75rem; border-radius: 20px; }
+.confidence-bar-container { margin: 1rem 0; background: var(--bg-surface); padding: 0.85rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); }
+.confidence-labels { display: flex; justify-content: space-between; font-size: 0.82rem; margin-bottom: 0.4rem; color: var(--text-main); }
+.confidence-track { height: 10px; background: var(--bg-main); border-radius: 5px; overflow: hidden; display: flex; }
+.confidence-fill.damaged { background: linear-gradient(90deg, #EF4444, #DC2626); transition: width 0.6s ease; }
+.confidence-fill.whole { background: linear-gradient(90deg, #10B981, #059669); transition: width 0.6s ease; }
+
+.analytics-badges-group { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; }
+.quality-chip { background: var(--bg-surface); border: 1px solid var(--border-color); color: var(--text-muted); font-size: 0.78rem; font-weight: 600; padding: 0.3rem 0.75rem; border-radius: var(--radius-sm); display: inline-flex; align-items: center; gap: 0.4rem; }
+.quality-chip.warning { background: rgba(245, 158, 11, 0.12); color: var(--warning); border-color: rgba(245, 158, 11, 0.3); }
+
+.readiness-trigger-box { margin-top: 1rem; }
+.btn-readiness-check { width: 100%; background: var(--primary-bg); color: var(--primary); border: 1px solid rgba(59, 130, 246, 0.4); padding: 0.75rem 1rem; border-radius: var(--radius-md); font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: var(--transition); display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; }
+.btn-readiness-check:hover { background: var(--primary); color: #FFF; }
+
+.readiness-result-card { background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1rem; margin-top: 1rem; }
+.readiness-score-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; }
+.readiness-score-val { font-family: var(--font-heading); font-size: 1.4rem; font-weight: 800; color: var(--primary); }
+.readiness-recommendation { font-size: 0.88rem; color: var(--text-muted); margin: 0.4rem 0; }
+.readiness-reasons-list { font-size: 0.82rem; color: var(--danger); padding-left: 1.2rem; margin-top: 0.5rem; }
+
+/* Insurance Claim Report Options Container */
+.report-options-box {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 1.25rem;
+    margin-bottom: 1.25rem;
+}
+.report-options-header h4 {
+    font-family: var(--font-heading);
+    font-size: 1.05rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-main);
+}
+.report-options-header p {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+/* Printable Claim Report (Hidden on screen, visible during native window.print()) */
+.printable-claim-report {
+    display: none;
+    background: #ffffff;
+    color: #0f172a;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    padding: 2rem;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+#printableClaimReport {
+    display: none;
+}
+
+.printable-claim-report .report-header-box {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    border-bottom: 2px solid #2563eb;
+    padding-bottom: 1rem;
+    margin-bottom: 1.2rem;
+}
+
+.printable-claim-report .report-brand-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0 0 0.25rem 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.printable-claim-report .report-brand-sub {
+    font-size: 0.85rem;
+    color: #2563eb;
+    font-weight: 600;
+    margin: 0;
+}
+
+.printable-claim-report .report-meta-box {
+    text-align: right;
+    font-size: 0.85rem;
+    color: #475569;
+}
+
+.printable-claim-report .report-meta-box p {
+    margin: 0.2rem 0;
+}
+
+.printable-claim-report .report-status-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.85rem 1.2rem;
+    border-radius: 8px;
+    margin-bottom: 1.2rem;
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+.printable-claim-report .report-status-bar.damaged {
+    background-color: #dc2626 !important;
+}
+
+.printable-claim-report .report-status-bar.nodamage {
+    background-color: #16a34a !important;
+}
+
+.printable-claim-report .report-section-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 1.2rem 0 0.6rem 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 0.3rem;
+}
+
+.printable-claim-report .report-details-grid {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1rem;
+}
+
+.printable-claim-report .report-details-grid th,
+.printable-claim-report .report-details-grid td {
+    border: 1px solid #cbd5e1;
+    padding: 0.65rem 0.85rem;
+    font-size: 0.85rem;
+    text-align: left;
+    color: #0f172a;
+}
+
+.printable-claim-report .report-details-grid th {
+    background-color: #f8fafc;
+    color: #334155;
+    font-weight: 600;
+    width: 25%;
+}
+
+.printable-claim-report .report-analytics-row {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.printable-claim-report .analytic-card {
+    flex: 1;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 0.75rem;
+    text-align: center;
+}
+
+.printable-claim-report .analytic-card .lbl {
+    font-size: 0.75rem;
+    color: #64748b;
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+.printable-claim-report .analytic-card .val {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.printable-claim-report .report-photo-wrapper {
+    text-align: center;
+    margin: 1rem 0;
+}
+
+.printable-claim-report .report-photo-wrapper img {
+    max-width: 100%;
+    max-height: 280px;
+    border-radius: 8px;
+    border: 1px solid #cbd5e1;
+    object-fit: contain;
+    display: block;
+    margin: 0 auto;
+}
+
+.printable-claim-report .report-notes-box {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 0.85rem;
+    font-size: 0.85rem;
+    color: #334155;
+    margin-bottom: 1rem;
+    line-height: 1.5;
+}
+
+.printable-claim-report .report-footer-stamp {
+    border-top: 1px solid #e2e8f0;
+    padding-top: 0.85rem;
+    margin-top: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.75rem;
+    color: #64748b;
+}
+
+/* ==========================================================================
+   GRAD-CAM HEATMAP, TTA & E-SIGNATURE STYLES
+   ========================================================================== */
+.flex-between {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.view-toggle-pills {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    padding: 0.2rem;
+    border-radius: var(--radius-sm);
+}
+
+.pill-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 0.25rem 0.6rem;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: var(--transition);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.pill-btn:hover { color: var(--text-main); }
+.pill-btn.active {
+    background: var(--primary);
+    color: #FFFFFF;
+    box-shadow: 0 2px 6px var(--primary-glow);
+}
+
+.quality-chip.tta-chip {
+    background: rgba(147, 51, 234, 0.15);
+    color: #A855F7;
+    border: 1px solid rgba(147, 51, 234, 0.3);
+}
+
+.uncertainty-alert-box {
+    background: rgba(245, 158, 11, 0.12);
+    border: 1px solid rgba(245, 158, 11, 0.35);
+    color: #F59E0B;
+    padding: 0.65rem 1rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.85rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-top: 0.75rem;
+}
+
+.btn-text-small {
+    background: transparent;
+    border: none;
+    color: var(--primary);
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+.btn-text-small:hover { text-decoration: underline; }
+
+.signature-canvas-wrapper {
+    position: relative;
+    width: 100%;
+    background: #FFFFFF;
+    border: 2px dashed var(--border-color);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+}
+
+#signatureCanvas {
+    display: block;
+    width: 100%;
+    height: 100px;
+    cursor: crosshair;
+    touch-action: none;
+}
+
+.sig-placeholder-hint {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 0.8rem;
+    color: #94A3B8;
+    pointer-events: none;
+    user-select: none;
+}
+
+/* ==========================================================================
+   NATIVE PRINT MEDIA STYLES (@media print)
+   ========================================================================== */
+@media print {
+    @page {
+        size: A4 portrait;
+        margin: 10mm 12mm;
+    }
+
+    /* Reset html & body so Chromium pagination calculates full auto height in flow */
+    html, body {
+        height: auto !important;
+        min-height: 0 !important;
+        background: #ffffff !important;
+        color: #000000 !important;
+        display: block !important;
+        overflow: visible !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    /* 1. Hide ALL normal application UI elements */
+    body > *:not(#printableClaimReport) {
+        display: none !important;
+    }
+
+    /* 2. Show ONLY the dedicated printable claim report container in standard block flow */
+    body > #printableClaimReport,
+    #printableClaimReport {
+        display: block !important;
+        visibility: visible !important;
+        position: static !important; /* CRITICAL FOR CHROMIUM PRINT ENGINE PAGINATION */
+        float: none !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        height: auto !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #ffffff !important;
+        color: #0f172a !important;
+        box-shadow: none !important;
+        border: none !important;
+        opacity: 1 !important;
+        overflow: visible !important;
+    }
+
+    #printableClaimReport * {
+        visibility: visible !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    .printable-claim-report .report-header-box,
+    .printable-claim-report .report-status-bar,
+    .printable-claim-report .report-details-grid,
+    .printable-claim-report .report-analytics-row,
+    .printable-claim-report .report-photo-wrapper,
+    .printable-claim-report .report-notes-box,
+    .printable-claim-report .report-footer-stamp {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+    }
+
+    .printable-claim-report .report-status-bar.damaged {
+        background-color: #dc2626 !important;
+        color: #ffffff !important;
+    }
+
+    .printable-claim-report .report-status-bar.nodamage {
+        background-color: #16a34a !important;
+        color: #ffffff !important;
+    }
+
+    .printable-claim-report .report-details-grid th {
+        background-color: #f1f5f9 !important;
+        color: #1e293b !important;
+    }
+}

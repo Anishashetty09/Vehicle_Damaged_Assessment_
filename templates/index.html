@@ -12,7 +12,7 @@
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Custom Stylesheet -->
-    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/style.css?v=2.0">
 </head>
 <body>
 
@@ -206,13 +206,18 @@
                 <!-- TOP COMPARISON & PREDICTION CARD -->
                 <div class="results-comparison-grid">
                     
-                    <!-- UPLOADED IMAGE BOX -->
+                    <!-- UPLOADED IMAGE & HEATMAP BOX -->
                     <div class="result-card image-display-card">
-                        <div class="card-header">
-                            <h3><i class="fa-solid fa-image text-primary"></i> <span data-i18n="res_uploaded_img">Uploaded Image</span></h3>
+                        <div class="card-header flex-between">
+                            <h3><i class="fa-solid fa-image text-primary"></i> <span data-i18n="res_uploaded_img">Vehicle Photo</span></h3>
+                            <div class="view-toggle-pills">
+                                <button class="pill-btn active" id="pillOrigBtn" onclick="toggleImageView('original')"><i class="fa-solid fa-eye"></i> Original</button>
+                                <button class="pill-btn" id="pillHeatmapBtn" onclick="toggleImageView('heatmap')"><i class="fa-solid fa-fire text-warning"></i> AI Heatmap</button>
+                            </div>
                         </div>
                         <div class="result-image-box">
                             <img id="resultImage" src="" alt="Uploaded Vehicle">
+                            <img id="resultHeatmapImage" src="" alt="Grad-CAM Damage Heatmap" style="display: none;">
                         </div>
                     </div>
 
@@ -230,6 +235,19 @@
                             <h2 class="status-heading" id="statusHeading" data-i18n="status_damaged">Damaged</h2>
                         </div>
 
+                        <!-- QUALITY, TTA & DUPLICATE ANALYTICS BADGES -->
+                        <div class="analytics-badges-group" id="analyticsBadgesGroup">
+                            <div class="quality-chip" id="qualityScoreChip"><i class="fa-solid fa-camera"></i> Image Clarity: <span id="qualityScoreVal">100</span>/100</div>
+                            <div class="quality-chip tta-chip"><i class="fa-solid fa-layer-group"></i> TTA Multi-Crop Verified</div>
+                            <div class="quality-chip warning" id="duplicateWarningChip" style="display: none;"><i class="fa-solid fa-copy"></i> Photo previously scanned</div>
+                        </div>
+
+                        <!-- UNCERTAINTY ALERT BOX IF BORDERLINE -->
+                        <div class="uncertainty-alert-box" id="uncertaintyAlertBox" style="display: none;">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                            <span>Prediction confidence is borderline. Manual surveyor verification is recommended.</span>
+                        </div>
+
                         <!-- TRUTHFUL AI SUMMARY -->
                         <div class="summary-callout-box">
                             <span class="summary-label"><i class="fa-solid fa-quote-left text-primary"></i> <span data-i18n="summary_title">AI Summary</span></span>
@@ -238,13 +256,35 @@
                             </p>
                         </div>
 
+                        <!-- CLAIM READINESS CHECKER TRIGGER -->
+                        <div class="readiness-trigger-box">
+                            <button class="btn-readiness-check" onclick="openClaimReadinessModal()">
+                                <i class="fa-solid fa-clipboard-check"></i> Assess Insurance Claim Readiness
+                            </button>
+                        </div>
+
                     </div>
                 </div>
 
-                <!-- ACTION BUTTONS BAR -->
+                <!-- ACTION BUTTONS BAR & INSURANCE CLAIM REPORT OPTIONS -->
                 <div class="result-card actions-card">
+                    <div class="report-options-box">
+                        <div class="report-options-header">
+                            <h4><i class="fa-solid fa-file-contract text-primary"></i> <span data-i18n="report_options_title">Insurance Claim Report Options</span></h4>
+                            <p data-i18n="report_options_sub">Generate official assessment document for claim filing or record keeping.</p>
+                        </div>
+                        <div class="actions-flex" style="margin-top: 1rem;">
+                            <button class="btn-action-lg success" onclick="openPdfModal('download')">
+                                <i class="fa-solid fa-file-pdf"></i> <span data-i18n="btn_download_pdf">Download PDF Report</span>
+                            </button>
+                            <button class="btn-action-lg primary" onclick="openPdfModal('print')">
+                                <i class="fa-solid fa-print"></i> <span data-i18n="btn_print_report">Print Claim Report</span>
+                            </button>
+                        </div>
+                    </div>
+
                     <div class="actions-flex">
-                        <button class="btn-action-lg primary" onclick="resetAssessment()">
+                        <button class="btn-action-lg secondary" onclick="resetAssessment()">
                             <i class="fa-solid fa-rotate-left"></i> <span data-i18n="btn_assess_another">Assess Another Image</span>
                         </button>
                         <button class="btn-action-lg secondary" onclick="triggerNewUpload()">
@@ -252,9 +292,6 @@
                         </button>
                         <button class="btn-action-lg outline" onclick="navigateTo('home')">
                             <i class="fa-solid fa-house"></i> <span data-i18n="btn_return_home">Return Home</span>
-                        </button>
-                        <button class="btn-action-lg success" onclick="openPdfModal()">
-                            <i class="fa-solid fa-file-pdf"></i> <span data-i18n="btn_download_pdf">Download Result as PDF</span>
                         </button>
                     </div>
                 </div>
@@ -378,16 +415,79 @@
         </div>
     </footer>
 
-    <!-- MODAL 1: INSPECTOR DETAILS FOR PDF -->
+    <!-- MODAL 0: CLAIM READINESS & POLICY ELIGIBILITY CHECKER -->
+    <div class="modal-backdrop" id="claimReadinessModal" style="display: none;">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-clipboard-check text-primary"></i> Insurance Claim Readiness Assessor</h3>
+                <button class="modal-close-btn" onclick="closeClaimReadinessModal()">&times;</button>
+            </div>
+            <form id="claimReadinessForm" onsubmit="handleCalculateClaimReadiness(event)">
+                <div class="modal-body">
+                    <p class="modal-subtext">Evaluate claim eligibility based on AI detection output and policy terms.</p>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="crPolicyType">Insurance Policy Type</label>
+                            <select id="crPolicyType">
+                                <option value="Comprehensive">Comprehensive Cover (Own Damage)</option>
+                                <option value="Third Party Only">Third Party Only</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="crLicenseStatus">Driver License Status</label>
+                            <select id="crLicenseStatus">
+                                <option value="valid">Valid Driver License</option>
+                                <option value="expired">Expired / Invalid License</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="crFirStatus">Police FIR Filed?</label>
+                            <select id="crFirStatus">
+                                <option value="yes">Yes (FIR Copy Available)</option>
+                                <option value="no">No FIR Filed</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="crTimeframe">Incident Date</label>
+                            <select id="crTimeframe">
+                                <option value="within_30">Within Last 30 Days</option>
+                                <option value="older_30">More than 30 Days Ago</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- READINESS RESULT BOX -->
+                    <div class="readiness-result-card" id="readinessResultCard" style="display: none;">
+                        <div class="readiness-score-header">
+                            <span class="readiness-score-val" id="readinessScoreVal">100/100</span>
+                            <span class="badge" id="readinessBadge">Eligible</span>
+                        </div>
+                        <h4 id="readinessStatusTitle">Status</h4>
+                        <p id="readinessRecommendation" class="readiness-recommendation"></p>
+                        <ul id="readinessReasonsList" class="readiness-reasons-list"></ul>
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" onclick="closeClaimReadinessModal()">Close</button>
+                    <button type="submit" class="btn-primary" id="btnCalcReadiness">
+                        <i class="fa-solid fa-calculator"></i> Calculate Eligibility Score
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 1: INSPECTOR DETAILS FOR PDF / CLAIM REPORT -->
     <div class="modal-backdrop" id="pdfInspectorModal" style="display: none;">
         <div class="modal-card">
             <div class="modal-header">
-                <h3><i class="fa-solid fa-id-card text-primary"></i> Download PDF Report</h3>
+                <h3><i class="fa-solid fa-file-contract text-primary"></i> <span data-i18n="report_options_title">Insurance Claim Report Details</span></h3>
                 <button class="modal-close-btn" onclick="closePdfModal()">&times;</button>
             </div>
             <form id="inspectorForm" onsubmit="handleGenerateReport(event)">
                 <div class="modal-body">
-                    <p class="modal-subtext">Enter metadata to compile your downloadable PDF summary.</p>
+                    <p class="modal-subtext">Enter metadata to compile your insurance claim report.</p>
                     <div class="form-grid">
                         <div class="form-group">
                             <label for="inspectorName">Inspector / User Name *</label>
@@ -413,11 +513,24 @@
                         <label for="inspectionNotes">Observations / Remarks</label>
                         <textarea id="inspectionNotes" rows="2" placeholder="Enter optional notes..."></textarea>
                     </div>
+                    <div class="form-group">
+                        <div class="flex-between" style="margin-bottom: 0.3rem;">
+                            <label><i class="fa-solid fa-signature"></i> Digital Inspector Signature</label>
+                            <button type="button" class="btn-text-small" onclick="clearSignatureCanvas()"><i class="fa-solid fa-eraser"></i> Clear Pad</button>
+                        </div>
+                        <div class="signature-canvas-wrapper">
+                            <canvas id="signatureCanvas" width="480" height="100"></canvas>
+                            <span class="sig-placeholder-hint" id="sigHint">Draw signature here with mouse or touch</span>
+                        </div>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn-secondary" onclick="closePdfModal()">Cancel</button>
+                    <button type="button" class="btn-primary" id="btnPrintPdf" onclick="handleGenerateReport(event, 'print')">
+                        <i class="fa-solid fa-print"></i> <span data-i18n="btn_print_report">Print Claim Report</span>
+                    </button>
                     <button type="submit" class="btn-success" id="btnCompilePdf">
-                        <i class="fa-solid fa-file-pdf"></i> Download PDF
+                        <i class="fa-solid fa-file-pdf"></i> <span data-i18n="btn_download_pdf">Download PDF</span>
                     </button>
                 </div>
             </form>
@@ -457,8 +570,72 @@
         <i class="fa-solid fa-arrow-up"></i>
     </button>
 
+    <!-- PRINTABLE CLAIM REPORT (HIDDEN ON SCREEN, VISIBLE FOR NATIVE PRINTING) -->
+    <div class="printable-claim-report" id="printableClaimReport">
+        <div class="report-header-box">
+            <div>
+                <h2 class="report-brand-title">AI VEHICLE DAMAGE ASSESSMENT REPORT</h2>
+                <p class="report-brand-sub">Official Damage Inspection & Insurance Claim Record</p>
+            </div>
+            <div class="report-meta-box">
+                <p><strong>Date:</strong> <span id="rptDate">--</span></p>
+                <p><strong>Inspection ID:</strong> <span id="rptInspectionId">--</span></p>
+            </div>
+        </div>
+
+        <div class="report-status-bar damaged" id="rptStatusBar">
+            <span>VEHICLE STATUS: <span id="rptStatusText">DAMAGED</span></span>
+        </div>
+
+        <div class="report-section-title">Inspection & Policy Details</div>
+        <table class="report-details-grid">
+            <tr>
+                <th>Inspector Name:</th>
+                <td id="rptInspectorName">--</td>
+                <th>Vehicle Registration:</th>
+                <td id="rptVehicleNo">--</td>
+            </tr>
+            <tr>
+                <th>Policy / Ref No:</th>
+                <td id="rptPolicyNo">--</td>
+                <th>Inspection ID:</th>
+                <td id="rptInspectionIdCell">--</td>
+            </tr>
+            <tr>
+                <th>Assessment Date/Time:</th>
+                <td id="rptTimestamp">--</td>
+                <th>AI Model Framework:</th>
+                <td id="rptFramework">PyTorch CNN</td>
+            </tr>
+        </table>
+
+        <div class="report-section-title">Image Quality Assessment</div>
+        <div class="report-analytics-row">
+            <div class="analytic-card">
+                <span class="lbl">Image Clarity Score</span>
+                <span class="val" id="rptQualityScore">--</span>
+            </div>
+        </div>
+
+        <div class="report-section-title">Inspected Vehicle Image</div>
+        <div class="report-photo-wrapper">
+            <img id="rptVehicleImage" src="" alt="Inspected Vehicle Photo">
+        </div>
+
+        <div class="report-section-title">AI Summary & Observations</div>
+        <div class="report-notes-box">
+            <p style="margin: 0 0 0.4rem 0;"><strong>AI Model Summary:</strong> <span id="rptSummaryText">--</span></p>
+            <p style="margin: 0;"><strong>Inspector Remarks:</strong> <span id="rptInspectorNotes">--</span></p>
+        </div>
+
+        <div class="report-footer-stamp">
+            <span>Generated by AI Vehicle Damage Assessment System</span>
+            <span>Doc Ref: <span id="rptFooterRef">--</span> | Ref Time: <span id="rptFooterTime">--</span></span>
+        </div>
+    </div>
+
     <!-- Translations & Main JS Files -->
-    <script src="/static/js/translations.js"></script>
-    <script src="/static/js/main.js"></script>
+    <script src="/static/js/translations.js?v=2.0"></script>
+    <script src="/static/js/main.js?v=2.0"></script>
 </body>
 </html>

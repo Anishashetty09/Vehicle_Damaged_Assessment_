@@ -394,9 +394,29 @@ function updateProgressStep(stepId, state) {
 /* --------------------------------------------------------------------------
    Binary Results Renderer (Bilingual Support)
    -------------------------------------------------------------------------- */
+function toggleImageView(viewType) {
+    const origImg = document.getElementById("resultImage");
+    const heatImg = document.getElementById("resultHeatmapImage");
+    const pillOrig = document.getElementById("pillOrigBtn");
+    const pillHeat = document.getElementById("pillHeatmapBtn");
+
+    if (viewType === 'heatmap' && heatImg && heatImg.src) {
+        if (origImg) origImg.style.display = "none";
+        if (heatImg) heatImg.style.display = "block";
+        if (pillOrig) pillOrig.classList.remove("active");
+        if (pillHeat) pillHeat.classList.add("active");
+    } else {
+        if (origImg) origImg.style.display = "block";
+        if (heatImg) heatImg.style.display = "none";
+        if (pillOrig) pillOrig.classList.add("active");
+        if (pillHeat) pillHeat.classList.remove("active");
+    }
+}
+
 function renderBinaryResults(data) {
     const resultsSection = document.getElementById("resultsSection");
     const resultImage = document.getElementById("resultImage");
+    const resultHeatmapImage = document.getElementById("resultHeatmapImage");
     const predictionStatusCard = document.getElementById("predictionStatusCard");
     const statusMainIcon = document.getElementById("statusMainIcon");
     const statusHeading = document.getElementById("statusHeading");
@@ -405,6 +425,10 @@ function renderBinaryResults(data) {
     if (resultImage && currentImageBase64) {
         resultImage.src = currentImageBase64;
     }
+    if (resultHeatmapImage && data.heatmap_url) {
+        resultHeatmapImage.src = data.heatmap_url;
+    }
+    toggleImageView('original');
 
     const isDamaged = data.prediction === "Damaged";
     const dict = TRANSLATIONS[currentLang] || TRANSLATIONS.en;
@@ -421,8 +445,102 @@ function renderBinaryResults(data) {
         summaryText.innerText = dict.summary_nodamage_text;
     }
 
+    // Category A: Populate Softmax Confidence & Probabilities (if elements exist)
+    if (data.confidence_percentage !== undefined) {
+        const confPct = document.getElementById("confidencePctVal");
+        const damVal = document.getElementById("damagedProbVal");
+        const whoVal = document.getElementById("wholeProbVal");
+        const damFill = document.getElementById("damagedProbFill");
+        const whoFill = document.getElementById("wholeProbFill");
+
+        if (confPct) confPct.innerText = data.confidence_percentage;
+        if (damVal) damVal.innerText = `${data.damaged_probability}%`;
+        if (whoVal) whoVal.innerText = `${data.whole_probability}%`;
+        if (damFill) damFill.style.width = `${data.damaged_probability}%`;
+        if (whoFill) whoFill.style.width = `${data.whole_probability}%`;
+    }
+
+    // Category A: Quality & Duplicate Warning Chips
+    if (data.quality) {
+        document.getElementById("qualityScoreVal").innerText = data.quality.quality_score;
+        if (data.quality.quality_warnings && data.quality.quality_warnings.length > 0) {
+            showToast(`Quality Warning: ${data.quality.quality_warnings.join(" ")}`, "info");
+        }
+    }
+
+    const dupChip = document.getElementById("duplicateWarningChip");
+    if (dupChip) {
+        dupChip.style.display = data.is_duplicate ? "inline-flex" : "none";
+    }
+
+    const uncertBox = document.getElementById("uncertaintyAlertBox");
+    if (uncertBox) {
+        uncertBox.style.display = data.is_uncertain ? "flex" : "none";
+    }
+
+    saveAssessmentToHistory(data);
+
     resultsSection.style.display = "block";
     resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+/* --------------------------------------------------------------------------
+   Category B: Claim Readiness Modal Handler
+   -------------------------------------------------------------------------- */
+function openClaimReadinessModal() {
+    document.getElementById("claimReadinessModal").style.display = "flex";
+}
+
+function closeClaimReadinessModal() {
+    document.getElementById("claimReadinessModal").style.display = "none";
+}
+
+async function handleCalculateClaimReadiness(event) {
+    event.preventDefault();
+    const policyType = document.getElementById("crPolicyType").value;
+    const licenseValid = document.getElementById("crLicenseStatus").value === "valid";
+    const firFiled = document.getElementById("crFirStatus").value === "yes";
+    const within30Days = document.getElementById("crTimeframe").value === "within_30";
+    const isDamaged = currentPredictionResult ? currentPredictionResult.is_damaged : true;
+
+    try {
+        const response = await fetch("/api/evaluate_claim_readiness", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                policy_type: policyType,
+                valid_license: licenseValid,
+                fir_filed: firFiled,
+                incident_within_30_days: within30Days,
+                is_damaged: isDamaged
+            })
+        });
+
+        const res = await response.json();
+        if (res.status === "success") {
+            const card = document.getElementById("readinessResultCard");
+            card.style.display = "block";
+            document.getElementById("readinessScoreVal").innerText = `${res.readiness_score}/100`;
+            document.getElementById("readinessStatusTitle").innerText = res.status_text;
+            document.getElementById("readinessRecommendation").innerText = res.recommendation;
+
+            const badge = document.getElementById("readinessBadge");
+            badge.className = `badge ${res.badge_class}`;
+            badge.innerText = res.badge_class === 'success' ? 'Eligible' : (res.badge_class === 'warning' ? 'Review Needed' : 'Ineligible');
+
+            const reasonsList = document.getElementById("readinessReasonsList");
+            reasonsList.innerHTML = "";
+            if (res.reasons && res.reasons.length > 0) {
+                res.reasons.forEach(r => {
+                    const li = document.createElement("li");
+                    li.innerText = r;
+                    reasonsList.appendChild(li);
+                });
+            }
+        }
+    } catch (err) {
+        showToast("Failed to calculate readiness score.", "error");
+    }
 }
 
 /* --------------------------------------------------------------------------
@@ -526,15 +644,92 @@ function appendChatMessage(sender, text, elementId = null) {
 }
 
 /* --------------------------------------------------------------------------
-   PDF Report Generator Modal & Download
+   PDF Report Generator Modal, Download & Print Options
    -------------------------------------------------------------------------- */
-function openPdfModal() {
+let currentPdfAction = 'download';
+let isSigDrawing = false;
+let sigCanvas, sigCtx;
+
+function initSignatureCanvas() {
+    sigCanvas = document.getElementById("signatureCanvas");
+    if (!sigCanvas) return;
+    sigCtx = sigCanvas.getContext("2d");
+    sigCtx.lineWidth = 2.5;
+    sigCtx.lineCap = "round";
+    sigCtx.strokeStyle = "#1E293B";
+
+    function getPos(e) {
+        const rect = sigCanvas.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        return {
+            x: clientX - rect.left,
+            y: clientY - rect.top
+        };
+    }
+
+    function startDraw(e) {
+        isSigDrawing = true;
+        const pos = getPos(e);
+        sigCtx.beginPath();
+        sigCtx.moveTo(pos.x, pos.y);
+        const hint = document.getElementById("sigHint");
+        if (hint) hint.style.display = "none";
+    }
+
+    function draw(e) {
+        if (!isSigDrawing) return;
+        if (e.preventDefault) e.preventDefault();
+        const pos = getPos(e);
+        sigCtx.lineTo(pos.x, pos.y);
+        sigCtx.stroke();
+    }
+
+    function stopDraw() {
+        isSigDrawing = false;
+    }
+
+    sigCanvas.onmousedown = startDraw;
+    sigCanvas.onmousemove = draw;
+    sigCanvas.onmouseup = stopDraw;
+    sigCanvas.onmouseleave = stopDraw;
+
+    sigCanvas.ontouchstart = startDraw;
+    sigCanvas.ontouchmove = draw;
+    sigCanvas.ontouchend = stopDraw;
+}
+
+function clearSignatureCanvas() {
+    if (!sigCanvas || !sigCtx) return;
+    sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height);
+    const hint = document.getElementById("sigHint");
+    if (hint) hint.style.display = "block";
+}
+
+function getSignatureData() {
+    if (!sigCanvas || !sigCtx) return null;
+    const pixelData = sigCtx.getImageData(0, 0, sigCanvas.width, sigCanvas.height).data;
+    let hasContent = false;
+    for (let i = 3; i < pixelData.length; i += 4) {
+        if (pixelData[i] > 0) {
+            hasContent = true;
+            break;
+        }
+    }
+    return hasContent ? sigCanvas.toDataURL("image/png") : null;
+}
+
+function openPdfModal(actionType = 'download') {
+    currentPdfAction = actionType;
     autoGenerateID();
-    document.getElementById("pdfInspectorModal").style.display = "flex";
+    const modal = document.getElementById("pdfInspectorModal");
+    if (modal) modal.style.display = "flex";
+    setTimeout(initSignatureCanvas, 100);
 }
 
 function closePdfModal() {
-    document.getElementById("pdfInspectorModal").style.display = "none";
+    const modal = document.getElementById("pdfInspectorModal");
+    if (modal) modal.style.display = "none";
 }
 
 function autoGenerateID() {
@@ -543,11 +738,126 @@ function autoGenerateID() {
     if (inspElem) inspElem.value = `INSP-2026-${randomNum}`;
 }
 
-async function handleGenerateReport(e) {
-    e.preventDefault();
+function populatePrintableReportData(details = {}) {
+    if (!currentPredictionResult) return;
+
+    const now = new Date();
+    const formattedDate = now.toLocaleDateString([], { year: 'numeric', month: 'short', day: 'numeric' });
+    const formattedTime = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const dateTimeStr = `${formattedDate} at ${formattedTime}`;
+
+    const isDamaged = currentPredictionResult.prediction === "Damaged";
+
+    // Date & Inspection IDs
+    const rptDate = document.getElementById("rptDate");
+    const rptInspectionId = document.getElementById("rptInspectionId");
+    const rptInspectionIdCell = document.getElementById("rptInspectionIdCell");
+    if (rptDate) rptDate.innerText = formattedDate;
+    if (rptInspectionId) rptInspectionId.innerText = details.inspectionId || "INSP-2026";
+    if (rptInspectionIdCell) rptInspectionIdCell.innerText = details.inspectionId || "INSP-2026";
+    
+    // Status Bar
+    const statusBar = document.getElementById("rptStatusBar");
+    const statusText = document.getElementById("rptStatusText");
+    if (statusBar && statusText) {
+        statusText.innerText = currentPredictionResult.prediction ? currentPredictionResult.prediction.toUpperCase() : "EVALUATED";
+        statusBar.className = `report-status-bar ${isDamaged ? 'damaged' : 'nodamage'}`;
+    }
+
+    // Inspector metadata
+    const rptInspectorName = document.getElementById("rptInspectorName");
+    const rptVehicleNo = document.getElementById("rptVehicleNo");
+    const rptPolicyNo = document.getElementById("rptPolicyNo");
+    const rptTimestamp = document.getElementById("rptTimestamp");
+    const rptFramework = document.getElementById("rptFramework");
+
+    if (rptInspectorName) rptInspectorName.innerText = details.inspectorName || "N/A";
+    if (rptVehicleNo) rptVehicleNo.innerText = details.vehicleNo || "N/A";
+    if (rptPolicyNo) rptPolicyNo.innerText = details.policyNo || "N/A";
+    if (rptTimestamp) rptTimestamp.innerText = dateTimeStr;
+    if (rptFramework) rptFramework.innerText = currentPredictionResult.framework || "PyTorch CNN";
+
+    // Image Quality Score
+    const rptQualityScore = document.getElementById("rptQualityScore");
+    if (rptQualityScore) rptQualityScore.innerText = `${currentPredictionResult.quality ? currentPredictionResult.quality.quality_score : 100}/100`;
+
+    // Vehicle Photo
+    const rptImg = document.getElementById("rptVehicleImage");
+    const resultImg = document.getElementById("resultImage");
+    const previewImg = document.getElementById("previewImage");
+    const imgSrc = currentImageBase64 || (resultImg ? resultImg.src : (previewImg ? previewImg.src : ""));
+    if (rptImg && imgSrc) {
+        rptImg.src = imgSrc;
+    }
+
+    // AI Summary & Notes
+    const dict = TRANSLATIONS[currentLang] || TRANSLATIONS.en;
+    const summaryMsg = isDamaged ? dict.summary_damaged_text : dict.summary_nodamage_text;
+    const rptSummaryText = document.getElementById("rptSummaryText");
+    const rptInspectorNotes = document.getElementById("rptInspectorNotes");
+
+    if (rptSummaryText) rptSummaryText.innerText = currentPredictionResult.summary || summaryMsg;
+    if (rptInspectorNotes) rptInspectorNotes.innerText = details.notes || "No additional remarks.";
+
+    // Footer info
+    const rptFooterRef = document.getElementById("rptFooterRef");
+    const rptFooterTime = document.getElementById("rptFooterTime");
+    if (rptFooterRef) rptFooterRef.innerText = details.inspectionId || "REF-2026";
+    if (rptFooterTime) rptFooterTime.innerText = dateTimeStr;
+}
+
+async function executeNativePrint() {
+    const printableReport = document.getElementById("printableClaimReport");
+    const rptImg = document.getElementById("rptVehicleImage");
+
+    if (!printableReport) {
+        showToast("Error: Printable report container missing", "error");
+        return;
+    }
+
+    // Temporarily set display: block in screen DOM so browser layout engine computes geometry before printing
+    printableReport.style.display = "block";
+
+    // Ensure vehicle photo is fully loaded & decoded in DOM before opening print dialog
+    if (rptImg && rptImg.src && rptImg.src !== window.location.href && !rptImg.src.endsWith("#")) {
+        if (!rptImg.complete) {
+            await new Promise((resolve) => {
+                rptImg.onload = resolve;
+                rptImg.onerror = resolve;
+            });
+        }
+        if (rptImg.decode) {
+            try {
+                await rptImg.decode();
+            } catch (e) {
+                console.log("Image decode complete", e);
+            }
+        }
+    }
+
+    // Await animation frame + timeout to guarantee layout reflow for print styles
+    await new Promise(r => requestAnimationFrame(() => setTimeout(r, 120)));
+
+    window.print();
+
+    // Reset style after print dialog closes
+    setTimeout(() => {
+        printableReport.style.display = "";
+    }, 500);
+}
+
+async function handleGenerateReport(e, actionType = null) {
+    if (e && e.preventDefault) e.preventDefault();
+    const finalAction = actionType || currentPdfAction || 'download';
 
     if (!currentPredictionResult) {
         showToast("Please run damage assessment first!", "error");
+        return;
+    }
+
+    const form = document.getElementById("inspectorForm");
+    if (form && !form.checkValidity()) {
+        form.reportValidity();
         return;
     }
 
@@ -557,21 +867,56 @@ async function handleGenerateReport(e) {
     const inspectionId = document.getElementById("inspectionId").value.trim();
     const notes = document.getElementById("inspectionNotes").value.trim();
 
+    // Populate Printable Report DOM Elements with entered claim metadata
+    populatePrintableReportData({
+        inspectorName,
+        vehicleNo,
+        policyNo,
+        inspectionId,
+        notes
+    });
+
+    if (finalAction === 'print') {
+        // Close inspector details modal first
+        closePdfModal();
+
+        // Log record into session history
+        saveAssessmentToHistory({
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            inspection_id: inspectionId,
+            status: currentPredictionResult.prediction,
+            report_url: "#"
+        });
+
+        // Trigger native browser print dialog after image decoding & DOM render
+        showToast(currentLang === 'kn' ? "ಪ್ರಿಂಟ್ ಡೈಲಾಗ್ ತೆರೆಯಲಾಗುತ್ತಿದೆ..." : "Opening Native Print Dialog...", "info");
+        await executeNativePrint();
+        return;
+    }
+
+    // IF finalAction === 'download': Execute existing PDF report file download
     const btnCompilePdf = document.getElementById("btnCompilePdf");
-    btnCompilePdf.disabled = true;
-    btnCompilePdf.innerHTML = `<i class="fa-solid fa-spinner spinner"></i> ${currentLang === 'kn' ? 'PDF ಸಿದ್ಧಪಡಿಸಲಾಗುತ್ತಿದೆ...' : 'Compiling PDF...'}`;
+    const btnPrintPdf = document.getElementById("btnPrintPdf");
+
+    if (btnCompilePdf) btnCompilePdf.disabled = true;
+    if (btnPrintPdf) btnPrintPdf.disabled = true;
+
+    if (btnCompilePdf) {
+        btnCompilePdf.innerHTML = `<i class="fa-solid fa-spinner spinner"></i> ${currentLang === 'kn' ? 'ಸಂಸ್ಕರಿಸಲಾಗುತ್ತಿದೆ...' : 'Processing...'}`;
+    }
 
     const payload = {
-        inspector_name: inspectorName,
-        vehicle_no: vehicleNo,
-        policy_no: policyNo,
-        inspection_id: inspectionId,
-        notes: notes,
+        inspector_name: inspectorName || "N/A",
+        vehicle_no: vehicleNo || "N/A",
+        policy_no: policyNo || "N/A",
+        inspection_id: inspectionId || `INSP-${Date.now()}`,
+        notes: notes || "No additional remarks.",
         image_id: currentPredictionResult.image_id,
         prediction: currentPredictionResult.prediction,
         summary: currentPredictionResult.summary,
-        framework: currentPredictionResult.framework,
-        inference_time_ms: currentPredictionResult.inference_time_ms
+        framework: currentPredictionResult.framework || "PyTorch 2.0",
+        inference_time_ms: currentPredictionResult.inference_time_ms || 0,
+        signature_data: getSignatureData()
     };
 
     try {
@@ -582,36 +927,66 @@ async function handleGenerateReport(e) {
         });
 
         const data = await response.json();
-        btnCompilePdf.disabled = false;
-        btnCompilePdf.innerHTML = `<i class="fa-solid fa-file-pdf"></i> Download PDF`;
+
+        if (btnCompilePdf) {
+            btnCompilePdf.disabled = false;
+            btnCompilePdf.innerHTML = `<i class="fa-solid fa-file-pdf"></i> <span data-i18n="btn_download_pdf">Download PDF</span>`;
+        }
+        if (btnPrintPdf) {
+            btnPrintPdf.disabled = false;
+            btnPrintPdf.innerHTML = `<i class="fa-solid fa-print"></i> <span data-i18n="btn_print_report">Print Claim Report</span>`;
+        }
 
         if (data.status === "success") {
             closePdfModal();
-            const downloadAnchor = document.createElement("a");
-            downloadAnchor.href = data.report_url;
-            downloadAnchor.target = "_blank";
-            downloadAnchor.download = data.filename;
-            document.body.appendChild(downloadAnchor);
-            downloadAnchor.click();
-            document.body.removeChild(downloadAnchor);
 
             saveAssessmentToHistory({
                 timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                inspection_id: inspectionId,
+                inspection_id: payload.inspection_id,
                 status: currentPredictionResult.prediction,
                 report_url: data.report_url
             });
 
-            showToast(currentLang === 'kn' ? "PDF ವರದಿ ಡೌನ್‌ಲೋಡ್ ಆಗಿದೆ!" : "PDF Report Downloaded!", "success");
+            const downloadUrl = `${data.report_url}?download=1`;
+            const link = document.createElement("a");
+            link.href = downloadUrl;
+            link.setAttribute("download", data.filename);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            showToast(currentLang === 'kn' ? "PDF ವರದಿ ಡೌನ್‌ಲೋಡ್ ಆಗಿದೆ!" : "PDF Report Downloaded Successfully!", "success");
         } else {
             showToast("PDF Error: " + (data.message || "Failed to generate PDF"), "error");
         }
     } catch (err) {
-        btnCompilePdf.disabled = false;
-        btnCompilePdf.innerHTML = `<i class="fa-solid fa-file-pdf"></i> Download PDF`;
+        if (btnCompilePdf) {
+            btnCompilePdf.disabled = false;
+            btnCompilePdf.innerHTML = `<i class="fa-solid fa-file-pdf"></i> Download PDF`;
+        }
+        if (btnPrintPdf) {
+            btnPrintPdf.disabled = false;
+            btnPrintPdf.innerHTML = `<i class="fa-solid fa-print"></i> Print Claim Report`;
+        }
         console.error("PDF API Error:", err);
         showToast("Error connecting to PDF generator.", "error");
     }
+}
+
+async function printAssessmentResult() {
+    if (!currentPredictionResult) {
+        showToast("Please run an assessment first!", "error");
+        return;
+    }
+
+    const inspectorName = document.getElementById("inspectorName") ? document.getElementById("inspectorName").value.trim() : "";
+    const vehicleNo = document.getElementById("vehicleNo") ? document.getElementById("vehicleNo").value.trim() : "";
+    const policyNo = document.getElementById("policyNo") ? document.getElementById("policyNo").value.trim() : "";
+    const inspectionId = document.getElementById("inspectionId") ? document.getElementById("inspectionId").value.trim() : "";
+    const notes = document.getElementById("inspectionNotes") ? document.getElementById("inspectionNotes").value.trim() : "";
+
+    populatePrintableReportData({ inspectorName, vehicleNo, policyNo, inspectionId, notes });
+    await executeNativePrint();
 }
 
 /* --------------------------------------------------------------------------
@@ -630,10 +1005,21 @@ function loadHistoryFromStorage() {
 }
 
 function saveAssessmentToHistory(record) {
-    assessmentHistory.unshift(record);
-    if (assessmentHistory.length > 20) assessmentHistory.pop();
-    localStorage.setItem("vehicle_assessment_history_binary", JSON.stringify(assessmentHistory));
-    renderHistoryTable();
+    const formattedRecord = {
+        timestamp: record.timestamp || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        inspection_id: record.inspection_id || `INSP-${(record.image_id || 'LOCAL').slice(-6).toUpperCase()}`,
+        status: record.prediction || record.status || "Unknown",
+        confidence: record.confidence_percentage ? `${record.confidence_percentage}%` : "N/A",
+        report_url: record.report_url || "#"
+    };
+    
+    // Prevent duplicate entries by inspection_id
+    if (!assessmentHistory.some(h => h.inspection_id === formattedRecord.inspection_id)) {
+        assessmentHistory.unshift(formattedRecord);
+        if (assessmentHistory.length > 20) assessmentHistory.pop();
+        localStorage.setItem("vehicle_assessment_history_binary", JSON.stringify(assessmentHistory));
+        renderHistoryTable();
+    }
 }
 
 function renderHistoryTable() {

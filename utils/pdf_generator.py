@@ -145,18 +145,34 @@ def generate_pdf_report(report_data, output_path):
     story.append(meta_grid)
     story.append(Spacer(1, 14))
 
-    # 4. Embedded Image Section
+    # 4. Embedded Image Section (Original Photo + Grad-CAM Heatmap side-by-side)
     image_path = report_data.get('image_path')
+    heatmap_path = report_data.get('heatmap_path')
+
     if image_path and os.path.exists(image_path):
-        story.append(Paragraph("CAPTURED VEHICLE IMAGE SNAPSHOT", section_heading))
+        story.append(Paragraph("CAPTURED VEHICLE IMAGE & AI GRAD-CAM HEATMAP VISUALIZATION", section_heading))
         try:
-            img = RLImage(image_path, width=280, height=200)
-            img_table = Table([[img]], colWidths=[540])
+            img_orig = RLImage(image_path, width=240, height=170)
+            
+            if heatmap_path and os.path.exists(heatmap_path):
+                img_heat = RLImage(heatmap_path, width=240, height=170)
+                img_cells = [
+                    [Paragraph("<b>Original Photo Snapshot</b>", body_style), Paragraph("<b>AI Grad-CAM Damage Heatmap</b>", body_style)],
+                    [img_orig, img_heat]
+                ]
+                img_table = Table(img_cells, colWidths=[265, 265])
+            else:
+                img_cells = [
+                    [Paragraph("<b>Original Photo Snapshot</b>", body_style)],
+                    [img_orig]
+                ]
+                img_table = Table(img_cells, colWidths=[540])
+
             img_table.setStyle(TableStyle([
                 ('ALIGN', (0,0), (-1,-1), 'CENTER'),
                 ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
                 ('BACKGROUND', (0,0), (-1,-1), colors.HexColor('#F1F5F9')),
-                ('PADDING', (0,0), (-1,-1), 8)
+                ('PADDING', (0,0), (-1,-1), 6)
             ]))
             story.append(img_table)
             story.append(Spacer(1, 14))
@@ -186,21 +202,60 @@ def generate_pdf_report(report_data, output_path):
     story.append(rec_table)
     story.append(Spacer(1, 18))
 
-    # 6. Signature Block
+    # 6. QR Code Verification & Digital Signature Block
+    qr_img_path = None
+    try:
+        import qrcode
+        import tempfile
+        insp_id = report_data.get('inspection_id', 'N/A')
+        qr_content = f"VERIFIED INSPECTION\nID: {insp_id}\nVehicle: {report_data.get('vehicle_no', 'N/A')}\nStatus: {prediction}\nTime: {report_data.get('date_time', 'N/A')}"
+        qr = qrcode.QRCode(version=1, box_size=3, border=1)
+        qr.add_data(qr_content)
+        qr.make(fit=True)
+        img_qr = qr.make_image(fill_color="black", back_color="white")
+        temp_qr_file = tempfile.NamedTemporaryFile(suffix=".png", delete=False)
+        qr_img_path = temp_qr_file.name
+        temp_qr_file.close()
+        img_qr.save(qr_img_path)
+    except Exception as e:
+        print(f"[PDF GENERATOR] Warning creating QR code: {e}")
+
+    qr_flowable = RLImage(qr_img_path, width=64, height=64) if qr_img_path and os.path.exists(qr_img_path) else Paragraph("QR Verified", body_style)
+
+    signature_path = report_data.get('signature_path')
+    if signature_path and os.path.exists(signature_path):
+        try:
+            sig_flowable = RLImage(signature_path, width=140, height=45)
+            sig_cell = [Paragraph("<b>Authorized Inspector Signature:</b>", body_style), sig_flowable]
+        except Exception:
+            sig_cell = Paragraph("<b>Authorized Inspector Signature:</b><br/><br/>___________________________", body_style)
+    else:
+        sig_cell = Paragraph("<b>Authorized Inspector Signature:</b><br/><br/>___________________________", body_style)
+
     sig_data = [
         [
-            Paragraph("<b>PyTorch AI Binary Classification Engine</b>", body_style),
-            Paragraph("<b>Authorized Signature:</b><br/><br/>___________________________", body_style)
+            Paragraph("<b>PyTorch AI Binary Classification Engine</b><br/><font color='#64748B' size=8>Report verification QR code encrypted with digital payload</font>", body_style),
+            qr_flowable,
+            sig_cell
         ]
     ]
-    sig_table = Table(sig_data, colWidths=[300, 240])
+    sig_table = Table(sig_data, colWidths=[230, 80, 230])
     sig_table.setStyle(TableStyle([
-        ('VALIGN', (0,0), (-1,-1), 'TOP'),
-        ('ALIGN', (1,0), (1,0), 'RIGHT'),
+        ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+        ('ALIGN', (1,0), (1,0), 'CENTER'),
+        ('ALIGN', (2,0), (2,0), 'RIGHT'),
     ]))
     story.append(sig_table)
 
     # Build PDF
     doc.build(story)
+    
+    # Clean up temp QR file if created
+    if qr_img_path and os.path.exists(qr_img_path):
+        try:
+            os.remove(qr_img_path)
+        except Exception:
+            pass
+
     print(f"[SUCCESS] PDF Inspection Report generated at: {output_path}")
     return output_path

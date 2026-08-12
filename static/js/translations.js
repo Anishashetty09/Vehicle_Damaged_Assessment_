@@ -60,10 +60,13 @@ const TRANSLATIONS = {
         summary_damaged_text: "The AI model detected visible signs that indicate the vehicle is damaged. This prediction is based on image analysis.",
         summary_nodamage_text: "The AI model did not detect visible damage in the uploaded image.",
         
+        report_options_title: "Insurance Claim Report Options",
+        report_options_sub: "Generate official assessment document for claim filing or record keeping.",
         btn_assess_another: "Assess Another Image",
         btn_upload_new: "Upload New Image",
         btn_return_home: "Return Home",
-        btn_download_pdf: "Download Result as PDF",
+        btn_download_pdf: "Download PDF Report",
+        btn_print_report: "Print Claim Report",
         
         history_tag: "Local Logs",
         history_title: "Assessment History",
@@ -147,10 +150,13 @@ const TRANSLATIONS = {
         summary_damaged_text: "AI ಮಾದರಿಯು ವಾಹನವು ಹಾನಿಗೊಳಗಾಗಿದೆ ಎಂದು ಸೂಚಿಸುವ ಗೋಚರ ಕುರುಹುಗಳನ್ನು ಪತ್ತೆ ಮಾಡಿದೆ. ಈ ಮುನ್ಸೂಚನೆಯು ಚಿತ್ರ ವಿಶ್ಲೇಷಣೆಯನ್ನು ಆಧರಿಸಿದೆ.",
         summary_nodamage_text: "ಅಪ್‌ಲೋಡ್ ಮಾಡಿದ ಚಿತ್ರದಲ್ಲಿ AI ಮಾದರಿಯು ಯಾವುದೇ ಗೋಚರ ಹಾನಿಯನ್ನು ಪತ್ತೆ ಮಾಡಿಲ್ಲ.",
         
+        report_options_title: "ವಿಮೆ ಕ್ಲೈಮ್ ವರದಿ ಆಯ್ಕೆಗಳು",
+        report_options_sub: "ಕ್ಲೈಮ್ ಸಲ್ಲಿಕೆ ಅಥವಾ ದಾಖಲೆಗಾಗಿ ಅಧಿಕೃತ ತಪಾಸಣೆ ದಾಖಲೆಯನ್ನು ಸಿದ್ಧಪಡಿಸಿ.",
         btn_assess_another: "ಮತ್ತೊಂದು ಚಿತ್ರ ತಪಾಸಣೆ ಮಾಡಿ",
         btn_upload_new: "ಹೊಸ ಚಿತ್ರ ಅಪ್‌ಲೋಡ್ ಮಾಡಿ",
         btn_return_home: "ಮುಖ್ಯ ಪುಟಕ್ಕೆ ಹಿಂತಿರುಗಿ",
-        btn_download_pdf: "ಫಲಿತಾಂಶವನ್ನು PDF ಆಗಿ ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ",
+        btn_download_pdf: "PDF ವರದಿಯನ್ನು ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ",
+        btn_print_report: "ವರದಿಯನ್ನು ಪ್ರಿಂಟ್ ಮಾಡಿ",
         
         history_tag: "ಸ್ಥಳೀಯ ದಾಖಲೆಗಳು",
         history_title: "ತಪಾಸಣೆ ಇತಿಹಾಸ",
